@@ -31,28 +31,24 @@ public abstract class Unit : MonoBehaviour
 	/// Attacks a given unit
 	/// </summary>
 	/// <param name="target">The unit this unit should attack</param>
-	public void AttackUnit(Unit target)
+	public virtual void AttackUnit(Unit target)
 	{
 		int damageToDeal = Mathf.Max(0, CalculatedOffence - target.CalculatedDefence);
 
 		target.TakeDamage(damageToDeal);
-		if (!target.isDead)
-		{
-			target.AttackUnit(this);
-		}
 	}
 
 	/// <summary>
 	/// Heals damage done to the unit
 	/// </summary>
 	/// <param name="healAmount">The amount of health to recover</param>
-	public void HealDamage(int healAmount) => Health = Mathf.Min(MaxHealth, Health + healAmount);
+	public virtual void HealDamage(int healAmount) => Health = Mathf.Min(MaxHealth, Health + healAmount);
 
 	/// <summary>
 	/// Damages the unit
 	/// </summary>
 	/// <param name="damageAmount">The amount to damage the user</param>
-	public void TakeDamage(int damageAmount)
+	public virtual void TakeDamage(int damageAmount)
 	{
 		Health = Mathf.Max(0, Health - damageAmount);
 		if (Health == 0)

@@ -119,5 +119,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f29caf7e79199d447b8b841d6c937a53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <MovementCost>k__BackingField: 2
+  <MovementCost>k__BackingField: 10
   <IsWalkable>k__BackingField: 1

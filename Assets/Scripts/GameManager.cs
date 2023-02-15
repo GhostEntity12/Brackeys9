@@ -24,7 +24,31 @@ public class GameManager : Singleton<GameManager>
 	{
 		if (!player.IsMoving)
 		{
-			if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitTile, 20, 1 << 6) &&
+			if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitEnemy, 20, 1 << 7) &&
+				hitEnemy.transform.TryGetComponent(out UnitEnemy enemy))
+			{
+				Node enemyNode = World.GetNodeFromWorldPosition(enemy.transform.position);
+				int lowestCost = 10000;
+				Stack<Node> lowestCostPath = null;
+				for (int i = 0; i < 4; i++)
+				{
+					Node comparisonNode = World.GetAdjacentNode((World.Direction)i, enemyNode);
+					if (comparisonNode == null) continue;
+
+					Stack<Node> comparisonPath = Pathfinding.Pathfind(player.DestinationNode, enemyNode);
+
+					if (GetPathCost(comparisonPath.ToArray()) < lowestCost)
+					{
+						lowestCostPath = comparisonPath;
+					}
+				}
+				if (lowestCostPath != null)
+				{
+					player.SetPath(path);
+					player.SetTargetedEnemy(enemy);
+				}
+			}
+			else if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitTile, 20, 1 << 6) &&
 				hitTile.transform.TryGetComponent(out Tile tile))
 			{
 				if (Input.GetMouseButtonDown(0))
@@ -36,11 +60,12 @@ public class GameManager : Singleton<GameManager>
 				if (tile.node != cacheNode)
 				{
 					cacheNode = tile.node;
-					path = World.Pathfind(player.DestinationNode, hitTile.transform.GetComponent<Tile>().node);
+					path = Pathfinding.Pathfind(player.DestinationNode, hitTile.transform.GetComponent<Tile>().node);
 					if (path == null) return;
 					DisplayPath(path.ToArray());
 				}
 			}
+
 		}
 	}
 
@@ -52,13 +77,7 @@ public class GameManager : Singleton<GameManager>
 		pathRenderer.positionCount = positions.Length;
 		pathRenderer.SetPositions(positions);
 
-		int cost = 0;
-		for (int i = 1; i < path.Length; i++)
-		{
-			Node node = path[i];
-			cost += node.MovementCost;
-		}
-
+		int cost = GetPathCost(path);
 		if (cost > 0)
 		{
 			pathCostText.text = cost.ToString();
@@ -71,5 +90,16 @@ public class GameManager : Singleton<GameManager>
 		}
 
 		pathRenderer.Simplify(0.1f);
+	}
+
+	int GetPathCost(Node[] path)
+	{
+		int cost = 0;
+		for (int i = 1; i < path.Length; i++)
+		{
+			Node node = path[i];
+			cost += node.MovementCost;
+		}
+		return cost;
 	}
 }

@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class UnitPlayer : Unit
@@ -14,8 +14,12 @@ public class UnitPlayer : Unit
 	[SerializeField]
 	float allowedError = 0.01f;
 
+	Stack<Node> path = new();
+	Vector3 currentWaypoint;
 	public Node DestinationNode { get; private set; }
 	public bool IsMoving { get; private set; }
+
+	UnitEnemy targettedEnemy = null;
 
 	int xp;
 	int xpToNextLevel
@@ -33,8 +37,6 @@ public class UnitPlayer : Unit
 		}
 	}
 
-	Stack<Node> path = new();
-	Vector3 currentWaypoint;
 
 	// Start is called before the first frame update
 	void Start()
@@ -57,6 +59,10 @@ public class UnitPlayer : Unit
 			else
 			{
 				IsMoving = false;
+				if (targettedEnemy)
+				{
+					AttackUnit(targettedEnemy);
+				}
 				return;
 			}
 		}
@@ -80,6 +86,8 @@ public class UnitPlayer : Unit
 		currentWaypoint = new(newNode.XPos + 0.5f, yOffset, newNode.YPos + 0.5f);
 		IsMoving = true;
 	}
+
+	public void SetTargetedEnemy(UnitEnemy enemy) => targettedEnemy = enemy;
 
 	/// <summary>
 	/// Grants the player  a given amount of xp

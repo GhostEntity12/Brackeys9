@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using TMPro;
+using System.Runtime.Serialization;
 using UnityEngine;
 
 public class World : MonoBehaviour
@@ -16,9 +13,14 @@ public class World : MonoBehaviour
 	// The prefabs of the tiles that can be spawned
 	public Tile[] spawnableTilePrefabs;
 
+	// The prefab of enemy to spawn
+	public UnitEnemy enemyPrefab;
+
 	// The array of tiles in the world
 	Node[,] worldNodes;
 
+	[SerializeField]
+	Vector2Int enemiesToSpawn = new(3, 5);
 	// Start is called before the first frame update
 	void Start()
 	{
@@ -43,96 +45,26 @@ public class World : MonoBehaviour
 				t.transform.parent = row.transform;
 			}
 		}
-	}
-
-	public Stack<Node> Pathfind(Node start, Node destination)
-	{
-		bool foundPath = false;
-
-		// The set of nodes to visit the algorithm is aware of 
-		Queue<Node> openSet = new();
-		// The set of visited nodes
-		List<Node> closedSet = new();
-		start.SetParent(start);
-
-		// Return if destination is not visitable (TODO: nav to closest tile?)
-		if (!destination.IsWalkable)
+		for (int y = 0; y < WorldYSize; y++)
 		{
-			//Debug.LogWarning("End tile unwalkable");
-			return null;
+			for (int x = 0; x < WorldXSize; x++)
+			{
+				Node n = worldNodes[x, y];
+				n.SetNeighbours(GetAdjacentNode(Direction.Left, n), GetAdjacentNode(Direction.Right, n), GetAdjacentNode(Direction.Up, n), GetAdjacentNode(Direction.Down, n));
+			}
 		}
 
-		// Prepare the starting node
-		openSet.Enqueue(start);
-
-		// Until we run out of nodes
-		while (openSet.Count > 0)
+		// Spawn enemies
+		for (int i = 0; i < Random.Range(enemiesToSpawn.x, enemiesToSpawn.y); i++)
 		{
-			Node current = openSet.Dequeue();
-			closedSet.Add(current);
 
-			// Destination found!
-			if (current == destination)
-			{
-				foundPath = true;
-				break;
-			}
-
-			// iterate over the neighbours
-			for (int i = 0; i < 4; i++)
-			{
-				// Get the neighbour
-				Node neighbour = AdjacentNode((Direction)i, current, worldNodes);
-				// Check the neighbor is not null (off map), is walkable, and has not already beem visited
-				if (neighbour == null || !neighbour.IsWalkable || closedSet.Contains(neighbour)) continue;
-
-				// Calculate the new gCost
-				int newGCost = current.GCost + GetDistance(current, neighbour) + neighbour.MovementCost;
-
-				// Check if the neightbour is not in the set to visit or if new calculation is less than the existing 
-				if (newGCost < neighbour.GCost || !openSet.Contains(neighbour))
-				{
-					neighbour.SetValues(newGCost, GetDistance(destination, neighbour), current);
-
-					// Remove the old version of the neighbour if it exists
-					if (openSet.Contains(neighbour))
-					{
-						openSet = new(openSet.Where(node => node != neighbour));
-					}
-					// Add the new/updated neighbour
-					openSet.Enqueue(neighbour);
-				}
-			}
-			// Sort the openSet by fCost
-			openSet = new(openSet.OrderBy(node => node.FCost));
-		}
-
-		// If path found, 
-		if (foundPath)
-		{
-			Stack<Node> path = new();
-			Node pathingNode = destination;
-			while (pathingNode != start)
-			{
-				path.Push(pathingNode);
-				pathingNode = pathingNode.Parent;
-			}
-			path.Push(start);
-			return path;
-		}
-		else
-		{
-			// At this point, run a greedy best first search and re-run Pathfind() to the lowest?
-			//Debug.LogWarning("No Path Found");
-			return null;
 		}
 	}
-
-	int GetDistance(Node a, Node b) => Mathf.Abs(a.XPos - b.XPos) + Mathf.Abs(a.YPos - b.YPos);
 
 	public Node GetNodeFromWorldPosition(Vector3 pos) => (pos.x >= WorldXSize || pos.z >= WorldYSize) ? null : worldNodes[Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.z)];
 
-	public Node AdjacentNode(Direction direction, Node sourceNode, Node[,] allNodes)
+	public Node GetAdjacentNode(Direction direction, Node sourceNode) => GetAdjacentNode(direction, sourceNode, worldNodes);
+	Node GetAdjacentNode(Direction direction, Node sourceNode, Node[,] allNodes)
 	{
 		return direction switch
 		{
@@ -143,45 +75,14 @@ public class World : MonoBehaviour
 			_ => null,
 		};
 	}
-}
-[Serializable]
-public class Node
-{
-	public bool IsWalkable { get; set; }
-	public int XPos { get; private set; }
-	public int YPos { get; private set; }
 
-	public int MovementCost { get; private set; } = 1;
-
-	/// <summary>
-	/// Distance to start node
-	/// </summary>
-	public int GCost { get; private set; }
-	/// <summary>
-	/// Distance from end node
-	/// </summary>
-	public int HCost { get; private set; }
-	/// <summary>
-	/// Total cost
-	/// </summary>
-	public int FCost => GCost + HCost;
-
-	public Node Parent { get; private set; }
-
-	public void Init(int xPos, int yPos, int movementCost, bool walkable)
+	private void OnValidate()
 	{
-		XPos = xPos;
-		YPos = yPos;
-		MovementCost = movementCost;
-		IsWalkable = walkable;
-	}
-
-	public void SetParent(Node node) => Parent = node;
-
-	public void SetValues(int gCost, int hCost, Node parent)
-	{
-		GCost = gCost;
-		HCost = hCost;
-		SetParent(parent);
+		if (enemiesToSpawn.y < enemiesToSpawn.x)
+		{
+			int temp = enemiesToSpawn.y;
+			enemiesToSpawn.y = enemiesToSpawn.x;
+			enemiesToSpawn.x = temp;
+		}
 	}
 }

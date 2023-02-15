@@ -14,4 +14,13 @@ public class UnitEnemy : Unit
 		GameManager.Instance.player.GainXP(xpToGive);
 		// Kill enemy
 	}
+
+	public override void TakeDamage(int amount)
+	{
+		base.TakeDamage(amount);
+		if (!isDead)
+		{
+			AttackUnit(GameManager.Instance.player);
+		}
+	}
 }
