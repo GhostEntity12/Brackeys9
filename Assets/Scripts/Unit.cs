@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 
 public abstract class Unit : MonoBehaviour
 {
@@ -21,8 +18,8 @@ public abstract class Unit : MonoBehaviour
 	[field: SerializeField]
 	public int Defence { get; protected set; }
 
-	public int calculatedOffence => Offence + offenceModifier;
-	public int calculatedDefence => Defence + defenceModifier;
+	public int CalculatedOffence => Offence + offenceModifier;
+	public int CalculatedDefence => Defence + defenceModifier;
 
 	protected int offenceModifier = 0;
 	protected int defenceModifier = 0;
@@ -36,7 +33,7 @@ public abstract class Unit : MonoBehaviour
 	/// <param name="target">The unit this unit should attack</param>
 	public void AttackUnit(Unit target)
 	{
-		int damageToDeal = Mathf.Max(0, calculatedOffence - target.calculatedDefence);
+		int damageToDeal = Mathf.Max(0, CalculatedOffence - target.CalculatedDefence);
 
 		target.TakeDamage(damageToDeal);
 		if (!target.isDead)

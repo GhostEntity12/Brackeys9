@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 4380864331361179054}
   - component: {fileID: 4870765610110065925}
   m_Layer: 6
-  m_Name: TestTile_Green
+  m_Name: TestTile_Grey
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -63,7 +63,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 23745b70ea951f54494635871ecbdbe1, type: 2}
+  - {fileID: 2100000, guid: 6a3b9a6f0fa93d64e8d7e4f437a0f14d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -119,5 +119,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f29caf7e79199d447b8b841d6c937a53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  <MovementCost>k__BackingField: 1
-  <IsWalkable>k__BackingField: 1
+  <MovementCost>k__BackingField: 0
+  <IsWalkable>k__BackingField: 0

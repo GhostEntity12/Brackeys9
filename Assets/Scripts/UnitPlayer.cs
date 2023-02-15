@@ -1,11 +1,21 @@
-using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class UnitPlayer : Unit
 {
 	const float LevelCurveStrength = 1.403f;
 	const float TargetLevel = 10;
+
+	[SerializeField]
+	float yOffset = 0.02f;
+	[SerializeField]
+	float speed = 1f;
+	[SerializeField]
+	float allowedError = 0.01f;
+
+	public Node DestinationNode { get; private set; }
+	public bool IsMoving { get; private set; }
 
 	int xp;
 	int xpToNextLevel
@@ -23,16 +33,52 @@ public class UnitPlayer : Unit
 		}
 	}
 
+	Stack<Node> path = new();
+	Vector3 currentWaypoint;
+
 	// Start is called before the first frame update
-	void Awake()
+	void Start()
 	{
 		AssignStats();
+		DestinationNode = GameManager.Instance.World.GetNodeFromWorldPosition(transform.position);
+		currentWaypoint = new(DestinationNode.XPos + 0.5f, yOffset, DestinationNode.YPos + 0.5f);
+		transform.position = transform.position + Vector3.up * yOffset;
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
+		if (Vector3.Distance(transform.position, currentWaypoint) < allowedError)
+		{
+			if (path.Count > 0)
+			{
+				SetNextWaypoint();
+			}
+			else
+			{
+				IsMoving = false;
+				return;
+			}
+		}
+		else
+		{
+			transform.position = Vector3.MoveTowards(transform.position, currentWaypoint, speed * Time.deltaTime);
+		}
+	}
 
+	public void SetPath(Stack<Node> newPath)
+	{
+		path = newPath;
+		// Save final node
+		DestinationNode = newPath.ToArray()[^1];
+		SetNextWaypoint();
+	}
+
+	void SetNextWaypoint()
+	{
+		Node newNode = path.Pop();
+		currentWaypoint = new(newNode.XPos + 0.5f, yOffset, newNode.YPos + 0.5f);
+		IsMoving = true;
 	}
 
 	/// <summary>

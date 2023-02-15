@@ -1,10 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class UnitEnemy : Unit
 {
-    public int xpToGive => Mathf.FloorToInt(level * 2.5f);
+	public int xpToGive => Mathf.FloorToInt(level * 2.5f);
 
 	private void Awake()
 	{
@@ -12,8 +10,8 @@ public class UnitEnemy : Unit
 	}
 
 	protected override void OnDeath()
-    {
-        GameManager.Instance.player.GainXP(xpToGive);
-        // Kill enemy
-    }
+	{
+		GameManager.Instance.player.GainXP(xpToGive);
+		// Kill enemy
+	}
 }

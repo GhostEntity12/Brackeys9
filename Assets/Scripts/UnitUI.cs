@@ -1,10 +1,9 @@
 using TMPro;
-using UnityEngine;
 
 [System.Serializable]
 public class UnitUI
 {
-	
+
 	public TextMeshProUGUI offenceText;
 	public TextMeshProUGUI defenceText;
 	public TextMeshProUGUI healthText;
