@@ -1,4 +1,4 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,6 +6,20 @@ public class UnitPlayer : Unit
 {
 	const float LevelCurveStrength = 1.403f;
 	const float TargetLevel = 10;
+
+	[SerializeField]
+	float yOffset = 0.2f;
+	[SerializeField]
+	float speed = 1f;
+	[SerializeField]
+	float allowedError = 0.01f;
+
+	Stack<Node> path = new();
+	Vector3 currentWaypoint;
+	public Node DestinationNode { get; private set; }
+	public bool IsMoving { get; private set; }
+
+	UnitEnemy targettedEnemy = null;
 
 	int xp;
 	int xpToNextLevel
@@ -23,17 +37,71 @@ public class UnitPlayer : Unit
 		}
 	}
 
+
 	// Start is called before the first frame update
-	void Awake()
+	void Start()
 	{
 		AssignStats();
+		DestinationNode = GameManager.Instance.World.GetNodeFromWorldPosition(transform.position);
+		currentWaypoint = new(DestinationNode.XPos + 0.5f, yOffset, DestinationNode.YPos + 0.5f);
+		transform.position = transform.position + Vector3.up * yOffset;
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
+		if (Vector3.Distance(transform.position, currentWaypoint) < allowedError)
+		{
+			if (path.Count > 0)
+			{
+				SetNextWaypoint();
+			}
+			else
+			{
+				IsMoving = false;
+				// Activate tile related events (including stat changes)
+				TileBase destinationTile = GameManager.Instance.World.GetTile(DestinationNode.XPos, DestinationNode.YPos);
+				offenceModifier = destinationTile.OffenceModifier;
+				defenceModifier = destinationTile.DefenceModifier;
+				destinationTile.Trigger();
 
+				// Attack the target if set
+				if (targettedEnemy)
+				{
+					AttackUnit(targettedEnemy);
+					targettedEnemy = null;
+				}
+				return;
+			}
+		}
+		else
+		{
+			transform.position = Vector3.MoveTowards(transform.position, currentWaypoint, speed * Time.deltaTime);
+		}
 	}
+
+	public void SetPath(Stack<Node> newPath)
+	{
+		ResetModifiers();
+		if (newPath == null)
+		{
+			Debug.LogError("Setting Null path!");
+			return;
+		}
+		path = newPath;
+		// Save final node
+		DestinationNode = newPath.ToArray()[^1];
+		SetNextWaypoint();
+	}
+
+	void SetNextWaypoint()
+	{
+		Node newNode = path.Pop();
+		currentWaypoint = new(newNode.XPos + 0.5f, yOffset, newNode.YPos + 0.5f);
+		IsMoving = true;
+	}
+
+	public void SetTargetedEnemy(UnitEnemy enemy) => targettedEnemy = enemy;
 
 	/// <summary>
 	/// Grants the player  a given amount of xp
@@ -41,11 +109,17 @@ public class UnitPlayer : Unit
 	/// <param name="xpToGain">The amount of xp for the player to gain</param>
 	public void GainXP(int xpToGain)
 	{
+		Debug.Log("Gained XP!");
 		int newXp = xp + xpToGain;
 		if (newXp > xpToNextLevel)
 		{
+			Debug.Log("Levelled up!");
 			xp = newXp - xpToNextLevel;
 			LevelUp();
+		}
+		else
+		{
+			xp = newXp;
 		}
 	}
 
@@ -57,13 +131,14 @@ public class UnitPlayer : Unit
 		IncreaseMaxHealth(1);
 		HealDamage(1);
 		level++;
+		unitUI.UpdateText(Health, MaxHealth, Offence, offenceModifier, Defence, defenceModifier);
 	}
 
 	/// <summary>
 	/// Permanently increases the unit's max health
 	/// </summary>
 	/// <param name="increaseAmount"></param>
-	public void IncreaseMaxHealth(int increaseAmount) => MaxHealth = increaseAmount;
+	public void IncreaseMaxHealth(int increaseAmount) => MaxHealth += increaseAmount;
 
 	/// <summary>
 	/// Permanantly increases the unit's offence stat

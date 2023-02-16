@@ -1,12 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 
 public abstract class Unit : MonoBehaviour
-{
-
-
+{ 
 	protected bool isDead = false;
 
 	//Properties
@@ -21,48 +16,47 @@ public abstract class Unit : MonoBehaviour
 	[field: SerializeField]
 	public int Defence { get; protected set; }
 
-	public int calculatedOffence => Offence + offenceModifier;
-	public int calculatedDefence => Defence + defenceModifier;
+	public int CalculatedOffence => Mathf.Max(0, Offence + offenceModifier);
+	public int CalculatedDefence => Mathf.Max(0, Defence + defenceModifier);
 
 	protected int offenceModifier = 0;
 	protected int defenceModifier = 0;
 
-	public UnitUI unitUI;
+	[SerializeField]
+	protected UnitUI unitUI;
 
 
 	/// <summary>
 	/// Attacks a given unit
 	/// </summary>
 	/// <param name="target">The unit this unit should attack</param>
-	public void AttackUnit(Unit target)
+	public virtual void AttackUnit(Unit target)
 	{
-		int damageToDeal = Mathf.Max(0, calculatedOffence - target.calculatedDefence);
+		int damageToDeal = Mathf.Max(0, CalculatedOffence - target.CalculatedDefence);
 
 		target.TakeDamage(damageToDeal);
-		if (!target.isDead)
-		{
-			target.AttackUnit(this);
-		}
 	}
 
 	/// <summary>
 	/// Heals damage done to the unit
 	/// </summary>
 	/// <param name="healAmount">The amount of health to recover</param>
-	public void HealDamage(int healAmount) => Health = Mathf.Min(MaxHealth, Health + healAmount);
+	public virtual void HealDamage(int healAmount) => Health = Mathf.Min(MaxHealth, Health + healAmount);
 
 	/// <summary>
 	/// Damages the unit
 	/// </summary>
 	/// <param name="damageAmount">The amount to damage the user</param>
-	public void TakeDamage(int damageAmount)
+	public virtual void TakeDamage(int damageAmount)
 	{
+		Debug.Log($"{name} took {damageAmount} damage");
 		Health = Mathf.Max(0, Health - damageAmount);
 		if (Health == 0)
 		{
 			OnDeath();
 			isDead = true;
 		}
+		unitUI.UpdateText(Health, MaxHealth, Offence, offenceModifier, Defence, defenceModifier);
 	}
 
 	protected abstract void OnDeath();
@@ -99,6 +93,6 @@ public abstract class Unit : MonoBehaviour
 			}
 		}
 		Health = MaxHealth;
-		unitUI.UpdateText(Health, MaxHealth, Offence, Defence);
+		unitUI.UpdateText(Health, MaxHealth, Offence, offenceModifier, Defence, defenceModifier);
 	}
 }
