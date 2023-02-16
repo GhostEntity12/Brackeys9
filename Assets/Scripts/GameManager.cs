@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using TMPro;
 using UnityEngine;
 
@@ -16,56 +18,68 @@ public class GameManager : Singleton<GameManager>
 	[SerializeField]
 	TextMeshPro pathCostText;
 	Node cacheNode;
+	UnitEnemy hoveredEnemy = null;
 
+	Stack<Node> path = new();
 
-	Stack<Node> path;
 	// Update is called once per frame
 	void Update()
 	{
 		if (!player.IsMoving)
 		{
-			if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitEnemy, 20, 1 << 7) &&
-				hitEnemy.transform.TryGetComponent(out UnitEnemy enemy))
-			{
-				Node enemyNode = World.GetNodeFromWorldPosition(enemy.transform.position);
-				int lowestCost = 10000;
-				Stack<Node> lowestCostPath = null;
-				for (int i = 0; i < 4; i++)
-				{
-					Node comparisonNode = World.GetAdjacentNode((World.Direction)i, enemyNode);
-					if (comparisonNode == null) continue;
-
-					Stack<Node> comparisonPath = Pathfinding.Pathfind(player.DestinationNode, enemyNode);
-
-					if (GetPathCost(comparisonPath.ToArray()) < lowestCost)
-					{
-						lowestCostPath = comparisonPath;
-					}
-				}
-				if (lowestCostPath != null)
-				{
-					player.SetPath(path);
-					player.SetTargetedEnemy(enemy);
-				}
-			}
-			else if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitTile, 20, 1 << 6) &&
-				hitTile.transform.TryGetComponent(out Tile tile))
+			if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitTile, 20, 1 << 6) &&
+				hitTile.transform.TryGetComponent(out TileBase tile))
 			{
 				if (Input.GetMouseButtonDown(0))
 				{
 					player.SetPath(path);
+					player.SetTargetedEnemy(hoveredEnemy);
 					cacheNode = null;
 				}
 
-				if (tile.node != cacheNode)
+				if (cacheNode == tile.Node) return;
+				cacheNode = tile.Node;
+
+				// Check if hit enemy
+				if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitEnemy, 20, 1 << 7) &&
+					hitEnemy.transform.TryGetComponent(out UnitEnemy enemy) &&
+					World.GetNodeFromWorldPosition(enemy.transform.position) == tile.Node)
 				{
-					cacheNode = tile.node;
-					path = Pathfinding.Pathfind(player.DestinationNode, hitTile.transform.GetComponent<Tile>().node);
-					if (path == null) return;
+					Node enemyNode = World.GetNodeFromWorldPosition(enemy.transform.position);
+
+					// Find best path
+					int lowestCost = 10000;
+					Stack<Node> lowestCostPath = null;
+					for (int i = 0; i < 4; i++)
+					{
+						// Cast to ITuple to iterate through
+						if ((enemyNode.Neighbours as ITuple)[i] is not Node enemyNeighbourNode) continue;
+
+						Stack<Node> comparisonPath = Pathfinding.Pathfind(player.DestinationNode, enemyNeighbourNode);
+						if (comparisonPath == null) continue;
+
+						int pathCost = GetPathCost(comparisonPath.ToArray());
+						if (pathCost < lowestCost)
+						{
+							lowestCost = pathCost;
+							lowestCostPath = comparisonPath;
+						}
+					}
+					if (lowestCostPath == null) return;
+
+					path = lowestCostPath;
+					DisplayPath(path.ToArray());
+					hoveredEnemy = enemy;
+				}
+				else
+				{
+					player.SetTargetedEnemy(null);
+					Stack<Node> attemptedPath = Pathfinding.Pathfind(player.DestinationNode, tile.Node);
+					if (attemptedPath == null) return;
+					path = attemptedPath;
 					DisplayPath(path.ToArray());
 				}
 			}
-
 		}
 	}
 

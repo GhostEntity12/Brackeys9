@@ -137,4 +137,6 @@ public class Node
 		HCost = hCost;
 		SetParent(parent);
 	}
+
+	public void SetWalkable(bool walkable) => IsWalkable = walkable;
 }

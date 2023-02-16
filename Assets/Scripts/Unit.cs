@@ -1,9 +1,7 @@
 using UnityEngine;
 
 public abstract class Unit : MonoBehaviour
-{
-
-
+{ 
 	protected bool isDead = false;
 
 	//Properties
@@ -18,13 +16,14 @@ public abstract class Unit : MonoBehaviour
 	[field: SerializeField]
 	public int Defence { get; protected set; }
 
-	public int CalculatedOffence => Offence + offenceModifier;
-	public int CalculatedDefence => Defence + defenceModifier;
+	public int CalculatedOffence => Mathf.Max(0, Offence + offenceModifier);
+	public int CalculatedDefence => Mathf.Max(0, Defence + defenceModifier);
 
 	protected int offenceModifier = 0;
 	protected int defenceModifier = 0;
 
-	public UnitUI unitUI;
+	[SerializeField]
+	protected UnitUI unitUI;
 
 
 	/// <summary>
@@ -50,12 +49,14 @@ public abstract class Unit : MonoBehaviour
 	/// <param name="damageAmount">The amount to damage the user</param>
 	public virtual void TakeDamage(int damageAmount)
 	{
+		Debug.Log($"{name} took {damageAmount} damage");
 		Health = Mathf.Max(0, Health - damageAmount);
 		if (Health == 0)
 		{
 			OnDeath();
 			isDead = true;
 		}
+		unitUI.UpdateText(Health, MaxHealth, Offence, offenceModifier, Defence, defenceModifier);
 	}
 
 	protected abstract void OnDeath();
@@ -92,6 +93,6 @@ public abstract class Unit : MonoBehaviour
 			}
 		}
 		Health = MaxHealth;
-		unitUI.UpdateText(Health, MaxHealth, Offence, Defence);
+		unitUI.UpdateText(Health, MaxHealth, Offence, offenceModifier, Defence, defenceModifier);
 	}
 }

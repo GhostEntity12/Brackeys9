@@ -2,7 +2,17 @@ using UnityEngine;
 
 public class UnitEnemy : Unit
 {
-	public int xpToGive => Mathf.FloorToInt(level * 2.5f);
+	Node location;
+
+	public void SetLocation(Node node, TileBase tile)
+	{
+		location = node;
+
+		offenceModifier = tile.OffenceModifier;
+		defenceModifier = tile.DefenceModifier;
+	}
+
+	public int XpToGive => Mathf.FloorToInt(level * 3f);
 
 	private void Awake()
 	{
@@ -11,8 +21,10 @@ public class UnitEnemy : Unit
 
 	protected override void OnDeath()
 	{
-		GameManager.Instance.player.GainXP(xpToGive);
-		// Kill enemy
+		GameManager.Instance.player.GainXP(XpToGive);
+		location.SetWalkable(true);
+		// Kill enemy - TODO: Change sprite instead
+		Destroy(gameObject);
 	}
 
 	public override void TakeDamage(int amount)

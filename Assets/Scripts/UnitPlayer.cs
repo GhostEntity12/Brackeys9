@@ -8,7 +8,7 @@ public class UnitPlayer : Unit
 	const float TargetLevel = 10;
 
 	[SerializeField]
-	float yOffset = 0.02f;
+	float yOffset = 0.2f;
 	[SerializeField]
 	float speed = 1f;
 	[SerializeField]
@@ -59,9 +59,17 @@ public class UnitPlayer : Unit
 			else
 			{
 				IsMoving = false;
+				// Activate tile related events (including stat changes)
+				TileBase destinationTile = GameManager.Instance.World.GetTile(DestinationNode.XPos, DestinationNode.YPos);
+				offenceModifier = destinationTile.OffenceModifier;
+				defenceModifier = destinationTile.DefenceModifier;
+				destinationTile.Trigger();
+
+				// Attack the target if set
 				if (targettedEnemy)
 				{
 					AttackUnit(targettedEnemy);
+					targettedEnemy = null;
 				}
 				return;
 			}
@@ -74,6 +82,12 @@ public class UnitPlayer : Unit
 
 	public void SetPath(Stack<Node> newPath)
 	{
+		ResetModifiers();
+		if (newPath == null)
+		{
+			Debug.LogError("Setting Null path!");
+			return;
+		}
 		path = newPath;
 		// Save final node
 		DestinationNode = newPath.ToArray()[^1];
@@ -95,11 +109,17 @@ public class UnitPlayer : Unit
 	/// <param name="xpToGain">The amount of xp for the player to gain</param>
 	public void GainXP(int xpToGain)
 	{
+		Debug.Log("Gained XP!");
 		int newXp = xp + xpToGain;
 		if (newXp > xpToNextLevel)
 		{
+			Debug.Log("Levelled up!");
 			xp = newXp - xpToNextLevel;
 			LevelUp();
+		}
+		else
+		{
+			xp = newXp;
 		}
 	}
 
@@ -111,13 +131,14 @@ public class UnitPlayer : Unit
 		IncreaseMaxHealth(1);
 		HealDamage(1);
 		level++;
+		unitUI.UpdateText(Health, MaxHealth, Offence, offenceModifier, Defence, defenceModifier);
 	}
 
 	/// <summary>
 	/// Permanently increases the unit's max health
 	/// </summary>
 	/// <param name="increaseAmount"></param>
-	public void IncreaseMaxHealth(int increaseAmount) => MaxHealth = increaseAmount;
+	public void IncreaseMaxHealth(int increaseAmount) => MaxHealth += increaseAmount;
 
 	/// <summary>
 	/// Permanantly increases the unit's offence stat

@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 
 public class World : MonoBehaviour
 {
@@ -11,13 +13,15 @@ public class World : MonoBehaviour
 	const int WorldYSize = 11;
 
 	// The prefabs of the tiles that can be spawned
-	public Tile[] spawnableTilePrefabs;
+	public TileBase[] spawnableTilePrefabs;
 
 	// The prefab of enemy to spawn
 	public UnitEnemy enemyPrefab;
 
-	// The array of tiles in the world
+	// The array of nodes in the world
 	Node[,] worldNodes;
+	// The array of tiles in the world
+	TileBase[,] worldTiles;
 
 	[SerializeField]
 	Vector2Int enemiesToSpawn = new(3, 5);
@@ -30,7 +34,9 @@ public class World : MonoBehaviour
 	void Generate()
 	{
 		worldNodes = new Node[WorldXSize, WorldYSize];
-		// Spawn tiles
+		worldTiles = new TileBase[WorldXSize, WorldYSize];
+
+		// Spawning tiles
 		GameObject world = new("World");
 		for (int y = 0; y < WorldYSize; y++)
 		{
@@ -38,33 +44,83 @@ public class World : MonoBehaviour
 			row.transform.parent = world.transform;
 			for (int x = 0; x < WorldXSize; x++)
 			{
-				Tile t = Instantiate(spawnableTilePrefabs[Random.Range(0, spawnableTilePrefabs.Length)], new Vector3(x + 0.5f, 0, y + 0.5f), Quaternion.Euler(90, 0, 0));
-				worldNodes[x, y] = t.node;
-				t.node.Init(x, y, t.MovementCost, t.IsWalkable);
+				// Instantiating tile
+				TileBase t = Instantiate(spawnableTilePrefabs[Random.Range(0, spawnableTilePrefabs.Length)], new Vector3(x + 0.5f, 0, y + 0.5f), Quaternion.Euler(90, 0, 0));
+				// Saving to arrays
+				worldNodes[x, y] = t.Node;
+				worldTiles[x, y] = t;
+				// Initializing and setting parent
+				t.Node.Init(x, y, t.MovementCost, t.IsWalkable);
 				t.name = $"{x}, {y}";
 				t.transform.parent = row.transform;
 			}
 		}
+		// Setting neighbours
 		for (int y = 0; y < WorldYSize; y++)
 		{
 			for (int x = 0; x < WorldXSize; x++)
 			{
 				Node n = worldNodes[x, y];
-				n.SetNeighbours(GetAdjacentNode(Direction.Left, n), GetAdjacentNode(Direction.Right, n), GetAdjacentNode(Direction.Up, n), GetAdjacentNode(Direction.Down, n));
+				n.SetNeighbours(GetAdjacentNode(n, Direction.Left), GetAdjacentNode(n, Direction.Right), GetAdjacentNode(n, Direction.Up), GetAdjacentNode(n, Direction.Down));
 			}
 		}
 
 		// Spawn enemies
 		for (int i = 0; i < Random.Range(enemiesToSpawn.x, enemiesToSpawn.y); i++)
 		{
+			// 100 attempts per enemy
+			int maxAttempts = 100;
+			int attempts = 0;
+			do
+			{
+				attempts++;
+				Vector2Int placePosition = new(Random.Range(0, WorldXSize), Random.Range(0, WorldYSize));
+				Node enemyPlaceAttemptNode = worldNodes[placePosition.x, placePosition.y];
+				// Disallow spawning on unwalkable tiles
+				if (enemyPlaceAttemptNode.IsWalkable)
+				{
+					Instantiate(enemyPrefab, new(enemyPlaceAttemptNode.XPos + 0.5f, 0.2f, enemyPlaceAttemptNode.YPos + 0.5f), Quaternion.identity).SetLocation(enemyPlaceAttemptNode, worldTiles[placePosition.x, placePosition.y]);
+					// Prevent the player from walking through enemies
+					enemyPlaceAttemptNode.SetWalkable(false);
+					break;
+				}
 
+			} while (attempts < maxAttempts);
 		}
 	}
 
-	public Node GetNodeFromWorldPosition(Vector3 pos) => (pos.x >= WorldXSize || pos.z >= WorldYSize) ? null : worldNodes[Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.z)];
+	/// <summary>
+	/// Returns a node based on x and y grid coordinates. Returns null if out of range
+	/// </summary>
+	/// <param name="x">The x coordinate</param>
+	/// <param name="y">The y coordinate</param>
+	/// <returns>The node at x, y</returns>
+	public Node GetNode(int x, int y) => (x >= WorldXSize || x < 0 || y >= WorldYSize || y < 0) ? null : worldNodes[x, y];
 
-	public Node GetAdjacentNode(Direction direction, Node sourceNode) => GetAdjacentNode(direction, sourceNode, worldNodes);
-	Node GetAdjacentNode(Direction direction, Node sourceNode, Node[,] allNodes)
+	/// <summary>
+	/// Returns a tile based on x and y grid coordinates. Returns null if out of range
+	/// </summary>
+	/// <param name="x">The x coordinate</param>
+	/// <param name="y">The y coordinate</param>
+	/// <returns>The tile at x, y</returns>
+	public TileBase GetTile(int x, int y) => (x >= WorldXSize || x < 0 || y >= WorldYSize || y < 0) ? null : worldTiles[x, y];
+
+	/// <summary>
+	/// Returns a node based on world position. Returns null if out of range
+	/// </summary>
+	/// <param name="x">The x coordinate</param>
+	/// <param name="y">The y coordinate</param>
+	/// <returns>The node at x, y</returns>
+	public Node GetNodeFromWorldPosition(Vector3 pos) => (pos.x >= WorldXSize || pos.x < 0 || pos.z >= WorldYSize || pos.z < 0) ? null : worldNodes[Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.z)];
+
+	/// <summary>
+	/// Returns the adacent node in a direction of a given node
+	/// </summary>
+	/// <param name="sourceNode">The node to be checked</param>
+	/// <param name="direction">Which direction's node should be returned</param>
+	/// <returns></returns>
+	public Node GetAdjacentNode(Node sourceNode, Direction direction) => GetAdjacentNode(sourceNode, direction, worldNodes);
+	Node GetAdjacentNode(Node sourceNode, Direction direction, Node[,] allNodes)
 	{
 		return direction switch
 		{
@@ -80,9 +136,7 @@ public class World : MonoBehaviour
 	{
 		if (enemiesToSpawn.y < enemiesToSpawn.x)
 		{
-			int temp = enemiesToSpawn.y;
-			enemiesToSpawn.y = enemiesToSpawn.x;
-			enemiesToSpawn.x = temp;
+			(enemiesToSpawn.x, enemiesToSpawn.y) = (enemiesToSpawn.y, enemiesToSpawn.x);
 		}
 	}
 }
