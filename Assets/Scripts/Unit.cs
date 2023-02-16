@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 public abstract class Unit : MonoBehaviour
@@ -25,6 +26,8 @@ public abstract class Unit : MonoBehaviour
 	protected Animator anim;
 	protected SpriteRenderer sprite;
 
+	[SerializeField]
+	DamageNumber dn;
 
 	[SerializeField]
 	protected UnitUI unitUI;
@@ -43,9 +46,10 @@ public abstract class Unit : MonoBehaviour
 	/// <param name="target">The unit this unit should attack</param>
 	public virtual void AttackUnit(Unit target)
 	{
-		int damageToDeal = Mathf.Max(0, CalculatedOffence - target.CalculatedDefence);
-
-		target.TakeDamage(damageToDeal);
+		if (target != null)
+		{
+			target.TakeDamage(Mathf.Max(0, CalculatedOffence - target.CalculatedDefence));
+		}
 	}
 
 	/// <summary>
@@ -74,6 +78,8 @@ public abstract class Unit : MonoBehaviour
 		unitUI.UpdateText(this);
 
 		anim.SetTrigger("hurt");
+
+		dn.Trigger(damageAmount);
 	}
 
 	protected abstract void OnDeath();

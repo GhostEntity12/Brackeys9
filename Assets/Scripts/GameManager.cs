@@ -12,17 +12,22 @@ public class GameManager : Singleton<GameManager>
 	[field: SerializeField]
 	public World World { get; private set; }
 
+	[field: SerializeField]
+	public int Actions { get; private set; }
+
 	[Header("Path Display")]
 	[SerializeField]
 	LineRenderer pathRenderer;
 	[SerializeField]
 	TextMeshPro pathCostText;
-	Node cacheNode;
+	//Node cacheNode;
 	UnitEnemy hoveredEnemy = null;
 
 	Stack<Node> path = new();
 
 	bool gameOver;
+	[SerializeField]
+	DoomsdayClock clock;
 
 	// Update is called once per frame
 	void Update()
@@ -36,11 +41,12 @@ public class GameManager : Singleton<GameManager>
 				{
 					player.SetPath(path);
 					player.SetTargetedEnemy(hoveredEnemy);
-					cacheNode = null;
+					//cacheNode = null;
+					clock.Consume(GetPathCost(path.ToArray()));
 				}
 
-				if (cacheNode == tile.Node) return;
-				cacheNode = tile.Node;
+				//if (cacheNode == tile.Node) return;
+				//cacheNode = tile.Node;
 
 				// Check if hit enemy
 				if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitEnemy, 20, 1 << 7) &&
@@ -95,18 +101,19 @@ public class GameManager : Singleton<GameManager>
 		pathRenderer.SetPositions(positions);
 
 		int cost = GetPathCost(path);
-		if (cost > 0)
-		{
-			pathCostText.text = cost.ToString();
-			int middle = positions.Length / 2;
-			pathCostText.transform.position = (positions.Length % 2 == 1 ? positions[middle] : (positions[middle] + positions[middle - 1]) / 2) + Vector3.up * 0.1f;
-		}
-		else
-		{
-			pathCostText.text = string.Empty;
-		}
+		//if (cost > 0)
+		//{
+		//	pathCostText.text = cost.ToString();
+		//	int middle = positions.Length / 2;
+		//	pathCostText.transform.position = (positions.Length % 2 == 1 ? positions[middle] : (positions[middle] + positions[middle - 1]) / 2) + Vector3.up * 0.1f;
+		//}
+		//else
+		//{
+		//	pathCostText.text = string.Empty;
+		//}
 
 		pathRenderer.Simplify(0.1f);
+		clock.ShowPreview(cost);
 	}
 
 	int GetPathCost(Node[] path)
@@ -118,6 +125,11 @@ public class GameManager : Singleton<GameManager>
 			cost += node.MovementCost;
 		}
 		return cost;
+	}
+
+	public void GenerateNewWorld()
+	{
+
 	}
 
 	public void GameOver()

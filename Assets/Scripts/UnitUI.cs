@@ -4,6 +4,7 @@ using UnityEngine;
 [System.Serializable]
 public class UnitUI
 {
+	public Canvas ui;
 
 	public TextMeshProUGUI offenceText;
 	public TextMeshProUGUI defenceText;
@@ -26,5 +27,10 @@ public class UnitUI
 			< 0 => Color.red,
 			_ => Color.white
 		};
+	}
+
+	public void Deactivate()
+	{
+		ui.gameObject.SetActive(false);
 	}
 }

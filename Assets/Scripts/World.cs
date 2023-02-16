@@ -38,6 +38,8 @@ public class World : MonoBehaviour
 	[SerializeField]
 	Vector2Int enemiesToSpawn = new(3, 5);
 
+	List<UnitEnemy> enemies = new();
+
 	void Start()
 	{
 		float f = 0;
@@ -126,6 +128,7 @@ public class World : MonoBehaviour
 					enemy.SetLocation(enemyPlaceAttemptNode, worldTiles[placePosition.x, placePosition.y]);
 					// Prevent the player from walking through enemies
 					enemyPlaceAttemptNode.SetWalkable(false);
+					enemies.Add(enemy);
 					break;
 				}
 

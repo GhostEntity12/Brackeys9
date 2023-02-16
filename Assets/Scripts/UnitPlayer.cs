@@ -75,7 +75,7 @@ public class UnitPlayer : Unit
 				// Attack the target if set
 				if (targetedEnemy && !queueAttack)
 				{
-					sprite.flipX = targetedEnemy.transform.position.x < transform.position.x;
+					sprite.flipX = targetedEnemy.transform.position.x < transform.position.x || targetedEnemy.transform.position.x <= transform.position.x && sprite.flipX;
 					anim.SetTrigger("attack");
 					queueAttack = true;
 				}
@@ -85,7 +85,7 @@ public class UnitPlayer : Unit
 		else
 		{
 			transform.position = Vector3.MoveTowards(transform.position, currentWaypoint, speed * Time.deltaTime);
-			sprite.flipX = currentWaypoint.x < transform.position.x;
+			sprite.flipX = currentWaypoint.x < transform.position.x || currentWaypoint.x <= transform.position.x && sprite.flipX;
 
 		}
 	}

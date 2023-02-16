@@ -16,6 +16,8 @@ public class UnitEnemy : Unit
 
 	public void Counterattack()
 	{
+		UnitPlayer p = GameManager.Instance.player;
+		sprite.flipX = p.transform.position.x > transform.position.x || p.transform.position.x >= transform.position.x && sprite.flipX;
 		if (!IsDead)
 		{
 			anim.SetTrigger("attack");
@@ -28,9 +30,9 @@ public class UnitEnemy : Unit
 
 	protected override void OnDeath()
 	{
+		unitUI.Deactivate();
 		GameManager.Instance.player.GainXP(XpToGive);
 		location.SetWalkable(true);
-		// Kill enemy - TODO: Change sprite instead
 		anim.SetTrigger("death");
 	}
 
@@ -41,20 +43,14 @@ public class UnitEnemy : Unit
 	/// <param name="damageAmount">The amount to damage the user</param>
 	public override void TakeDamage(int damageAmount)
 	{
+		UnitPlayer p = GameManager.Instance.player;
+		sprite.flipX = p.transform.position.x > transform.position.x || p.transform.position.x >= transform.position.x && sprite.flipX;
 		if (damageAmount <= 0)
 		{
 			Counterattack();
 			return;
 		}
 
-		Health = Mathf.Max(0, Health - damageAmount);
-		if (Health == 0)
-		{
-			OnDeath();
-			IsDead = true;
-		}
-		unitUI.UpdateText(this);
-
-		anim.SetTrigger("hurt");
+		base.TakeDamage(damageAmount);
 	}
 }
