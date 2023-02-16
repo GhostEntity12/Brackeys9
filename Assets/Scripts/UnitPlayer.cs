@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,6 +5,9 @@ public class UnitPlayer : Unit
 {
 	const float LevelCurveStrength = 1.403f;
 	const float TargetLevel = 10;
+
+	[SerializeField]
+	HealthDisplay healthDisplay;
 
 	[SerializeField]
 	float yOffset = 0.2f;
@@ -44,8 +46,9 @@ public class UnitPlayer : Unit
 	{
 		Offence = 2;
 		Defence = 2;
-		MaxHealth = 2;
+		MaxHealth = 10;
 		Health = MaxHealth;
+		healthDisplay.UpdateHearts(Health, MaxHealth);
 
 		DestinationNode = GameManager.Instance.World.GetNodeFromWorldPosition(transform.position);
 		currentWaypoint = new(DestinationNode.XPos + 0.5f, yOffset, DestinationNode.YPos + 0.5f);
@@ -148,6 +151,7 @@ public class UnitPlayer : Unit
 		IncreaseMaxHealth(1);
 		HealDamage(1);
 		Level++;
+		healthDisplay.UpdateHearts(Health, MaxHealth);
 		unitUI.UpdateText(this);
 	}
 
@@ -168,6 +172,18 @@ public class UnitPlayer : Unit
 	/// </summary>
 	/// <param name="increaseAmount">The amount to increase the unit's defence</param>
 	public void IncreaseDefence(int increaseAmount) => Defence += increaseAmount;
+
+	public override void HealDamage(int healAmount)
+	{
+		base.HealDamage(healAmount);
+		healthDisplay.UpdateHearts(Health, MaxHealth);
+	}
+
+	public override void TakeDamage(int damageAmount)
+	{
+		base.TakeDamage(damageAmount);
+		healthDisplay.UpdateHearts(Health, MaxHealth);
+	}
 
 	protected override void OnDeath()
 	{
