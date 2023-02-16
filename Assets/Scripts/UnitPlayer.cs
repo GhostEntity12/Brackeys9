@@ -19,29 +19,34 @@ public class UnitPlayer : Unit
 	public Node DestinationNode { get; private set; }
 	public bool IsMoving { get; private set; }
 
-	UnitEnemy targettedEnemy = null;
+	UnitEnemy targetedEnemy = null;
+
+	bool queueAttack;
 
 	int xp;
-	int xpToNextLevel
+	int XpToNextLevel
 	{
 		get
 		{
-			if (level <= TargetLevel)
+			if (Level <= TargetLevel)
 			{
-				return Mathf.FloorToInt(Mathf.Pow(LevelCurveStrength, level - 1) + 9);
+				return Mathf.FloorToInt(Mathf.Pow(LevelCurveStrength, Level - 1) + 9);
 			}
 			else
 			{
-				return Mathf.FloorToInt((Mathf.Pow(LevelCurveStrength, TargetLevel - 1) + 9) + (level - TargetLevel) * 10);
+				return Mathf.FloorToInt((Mathf.Pow(LevelCurveStrength, TargetLevel - 1) + 9) + (Level - TargetLevel) * 10);
 			}
 		}
 	}
 
-
 	// Start is called before the first frame update
 	void Start()
 	{
-		AssignStats();
+		Offence = 2;
+		Defence = 2;
+		MaxHealth = 2;
+		Health = MaxHealth;
+
 		DestinationNode = GameManager.Instance.World.GetNodeFromWorldPosition(transform.position);
 		currentWaypoint = new(DestinationNode.XPos + 0.5f, yOffset, DestinationNode.YPos + 0.5f);
 		transform.position = transform.position + Vector3.up * yOffset;
@@ -50,6 +55,7 @@ public class UnitPlayer : Unit
 	// Update is called once per frame
 	void Update()
 	{
+		anim.SetBool("isMoving", IsMoving);
 		if (Vector3.Distance(transform.position, currentWaypoint) < allowedError)
 		{
 			if (path.Count > 0)
@@ -61,15 +67,17 @@ public class UnitPlayer : Unit
 				IsMoving = false;
 				// Activate tile related events (including stat changes)
 				TileBase destinationTile = GameManager.Instance.World.GetTile(DestinationNode.XPos, DestinationNode.YPos);
-				offenceModifier = destinationTile.OffenceModifier;
-				defenceModifier = destinationTile.DefenceModifier;
-				destinationTile.Trigger();
+				OffenceModifier = destinationTile.OffenceModifier;
+				DefenceModifier = destinationTile.DefenceModifier;
+				destinationTile.Trigger(this);
+				unitUI.UpdateText(this);
 
 				// Attack the target if set
-				if (targettedEnemy)
+				if (targetedEnemy && !queueAttack)
 				{
-					AttackUnit(targettedEnemy);
-					targettedEnemy = null;
+					sprite.flipX = targetedEnemy.transform.position.x < transform.position.x;
+					anim.SetTrigger("attack");
+					queueAttack = true;
 				}
 				return;
 			}
@@ -77,7 +85,16 @@ public class UnitPlayer : Unit
 		else
 		{
 			transform.position = Vector3.MoveTowards(transform.position, currentWaypoint, speed * Time.deltaTime);
+			sprite.flipX = currentWaypoint.x < transform.position.x;
+
 		}
+	}
+
+	public void AttackTarget()
+	{
+		AttackUnit(targetedEnemy);
+		targetedEnemy = null;
+		queueAttack = false;
 	}
 
 	public void SetPath(Stack<Node> newPath)
@@ -101,7 +118,7 @@ public class UnitPlayer : Unit
 		IsMoving = true;
 	}
 
-	public void SetTargetedEnemy(UnitEnemy enemy) => targettedEnemy = enemy;
+	public void SetTargetedEnemy(UnitEnemy enemy) => targetedEnemy = enemy;
 
 	/// <summary>
 	/// Grants the player  a given amount of xp
@@ -111,10 +128,10 @@ public class UnitPlayer : Unit
 	{
 		Debug.Log("Gained XP!");
 		int newXp = xp + xpToGain;
-		if (newXp > xpToNextLevel)
+		if (newXp > XpToNextLevel)
 		{
 			Debug.Log("Levelled up!");
-			xp = newXp - xpToNextLevel;
+			xp = newXp - XpToNextLevel;
 			LevelUp();
 		}
 		else
@@ -130,8 +147,8 @@ public class UnitPlayer : Unit
 	{
 		IncreaseMaxHealth(1);
 		HealDamage(1);
-		level++;
-		unitUI.UpdateText(Health, MaxHealth, Offence, offenceModifier, Defence, defenceModifier);
+		Level++;
+		unitUI.UpdateText(this);
 	}
 
 	/// <summary>
@@ -156,6 +173,7 @@ public class UnitPlayer : Unit
 	{
 		// GameOver;
 		// Bring up lose screen
-		throw new System.NotImplementedException();
+		anim.SetTrigger("death");
+		GameManager.Instance.GameOver();
 	}
 }

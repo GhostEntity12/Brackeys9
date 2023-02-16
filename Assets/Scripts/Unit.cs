@@ -1,12 +1,11 @@
 using UnityEngine;
 
 public abstract class Unit : MonoBehaviour
-{ 
-	protected bool isDead = false;
+{
 
-	//Properties
-	[Header("Stats")]
-	protected int level = 1;
+	public bool IsDead { get; protected set; } = false;
+	[field: SerializeField]
+	public int Level { get; protected set; }
 	[field: SerializeField]
 	public int MaxHealth { get; protected set; } = 1;
 	[field: SerializeField]
@@ -14,17 +13,29 @@ public abstract class Unit : MonoBehaviour
 	[field: SerializeField]
 	public int Offence { get; protected set; }
 	[field: SerializeField]
+	public int OffenceModifier { get; protected set; } = 0;
+	[field: SerializeField]
 	public int Defence { get; protected set; }
+	[field: SerializeField]
+	public int DefenceModifier { get; protected set; } = 0;
 
-	public int CalculatedOffence => Mathf.Max(0, Offence + offenceModifier);
-	public int CalculatedDefence => Mathf.Max(0, Defence + defenceModifier);
+	public int CalculatedOffence => Mathf.Max(0, Offence + OffenceModifier);
+	public int CalculatedDefence => Mathf.Max(0, Defence + DefenceModifier);
 
-	protected int offenceModifier = 0;
-	protected int defenceModifier = 0;
+	protected Animator anim;
+	protected SpriteRenderer sprite;
+
 
 	[SerializeField]
 	protected UnitUI unitUI;
 
+	private void Awake()
+	{
+		anim = GetComponent<Animator>();
+		sprite = GetComponent<SpriteRenderer>();
+	}
+
+	public void SetLevel(int level) => Level = level;
 
 	/// <summary>
 	/// Attacks a given unit
@@ -41,7 +52,10 @@ public abstract class Unit : MonoBehaviour
 	/// Heals damage done to the unit
 	/// </summary>
 	/// <param name="healAmount">The amount of health to recover</param>
-	public virtual void HealDamage(int healAmount) => Health = Mathf.Min(MaxHealth, Health + healAmount);
+	public virtual void HealDamage(int healAmount)
+	{
+		Health = Mathf.Min(MaxHealth, Health + healAmount);
+	}
 
 	/// <summary>
 	/// Damages the unit
@@ -49,14 +63,17 @@ public abstract class Unit : MonoBehaviour
 	/// <param name="damageAmount">The amount to damage the user</param>
 	public virtual void TakeDamage(int damageAmount)
 	{
-		Debug.Log($"{name} took {damageAmount} damage");
+		if (damageAmount <= 0) return;
+
 		Health = Mathf.Max(0, Health - damageAmount);
 		if (Health == 0)
 		{
 			OnDeath();
-			isDead = true;
+			IsDead = true;
 		}
-		unitUI.UpdateText(Health, MaxHealth, Offence, offenceModifier, Defence, defenceModifier);
+		unitUI.UpdateText(this);
+
+		anim.SetTrigger("hurt");
 	}
 
 	protected abstract void OnDeath();
@@ -66,16 +83,16 @@ public abstract class Unit : MonoBehaviour
 	/// </summary>
 	public void ResetModifiers()
 	{
-		offenceModifier = 0;
-		defenceModifier = 0;
+		OffenceModifier = 0;
+		DefenceModifier = 0;
 	}
 
 	/// <summary>
 	/// Randomly assigns stats
 	/// </summary>
-	public void AssignStats()
+	public void AssignStats(int numberOfStats)
 	{
-		for (int i = 0; i < level + 5; i++)
+		for (int i = 0; i < numberOfStats; i++)
 		{
 			switch (Random.Range(0, 3))
 			{
@@ -93,6 +110,6 @@ public abstract class Unit : MonoBehaviour
 			}
 		}
 		Health = MaxHealth;
-		unitUI.UpdateText(Health, MaxHealth, Offence, offenceModifier, Defence, defenceModifier);
+		unitUI.UpdateText(this);
 	}
 }

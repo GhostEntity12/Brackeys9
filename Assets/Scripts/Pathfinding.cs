@@ -9,7 +9,7 @@ public static class Pathfinding
 	{
 		bool foundPath = false;
 
-		// The set of nodes to visit the algorithm is aware of 
+		/// The set of nodes to visit the algorithm is aware of 
 		Queue<Node> openSet = new();
 		// The set of visited nodes
 		List<Node> closedSet = new();
@@ -41,10 +41,9 @@ public static class Pathfinding
 			// iterate over the neighbours
 			for (int i = 0; i < 4; i++)
 			{
-				// Get the neighbour
-				Node neighbour = (current.Neighbours as ITuple)[i] as Node;
-				// Check the neighbor is not null (off map), is walkable, and has not already beem visited
-				if (neighbour == null || !neighbour.IsWalkable || closedSet.Contains(neighbour)) continue;
+				// Get the neighbour and it is not null (off map), is walkable, and has not already beem visited
+				// Cast to ITuple to iterate through
+				if ((current.Neighbours as ITuple)[i] is not Node neighbour || !neighbour.IsWalkable || closedSet.Contains(neighbour)) continue;
 
 				// Calculate the new gCost
 				int newGCost = current.GCost + GetDistance(current, neighbour) + neighbour.MovementCost;
@@ -124,12 +123,11 @@ public class Node
 		IsWalkable = walkable;
 	}
 
-	public void SetNeighbours(Node neighbourLeft, Node neighbourRight, Node neighbourUp, Node neighbourDown)
-	{
-		Neighbours = (neighbourLeft, neighbourRight, neighbourUp, neighbourDown);
-	}
+	public void SetNeighbours(Node neighbourLeft, Node neighbourRight, Node neighbourUp, Node neighbourDown) => Neighbours = (neighbourLeft, neighbourRight, neighbourUp, neighbourDown);
 
 	public void SetParent(Node node) => Parent = node;
+
+	public void SetWalkable(bool walkable) => IsWalkable = walkable;
 
 	public void SetValues(int gCost, int hCost, Node parent)
 	{
@@ -137,6 +135,4 @@ public class Node
 		HCost = hCost;
 		SetParent(parent);
 	}
-
-	public void SetWalkable(bool walkable) => IsWalkable = walkable;
 }

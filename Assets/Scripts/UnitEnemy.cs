@@ -8,31 +8,53 @@ public class UnitEnemy : Unit
 	{
 		location = node;
 
-		offenceModifier = tile.OffenceModifier;
-		defenceModifier = tile.DefenceModifier;
+		OffenceModifier = tile.OffenceModifier;
+		DefenceModifier = tile.DefenceModifier;
+		unitUI.UpdateText(this);
 	}
 
-	public int XpToGive => Mathf.FloorToInt(level * 3f);
 
-	private void Awake()
+	public void Counterattack()
 	{
-		AssignStats();
+		if (!IsDead)
+		{
+			anim.SetTrigger("attack");
+		}
 	}
+
+	public void AttackPlayer() => AttackUnit(GameManager.Instance.player);
+
+	public int XpToGive => Mathf.FloorToInt(Level * 3f);
 
 	protected override void OnDeath()
 	{
 		GameManager.Instance.player.GainXP(XpToGive);
 		location.SetWalkable(true);
 		// Kill enemy - TODO: Change sprite instead
-		Destroy(gameObject);
+		anim.SetTrigger("death");
 	}
 
-	public override void TakeDamage(int amount)
+
+	/// <summary>
+	/// Damages the unit
+	/// </summary>
+	/// <param name="damageAmount">The amount to damage the user</param>
+	public override void TakeDamage(int damageAmount)
 	{
-		base.TakeDamage(amount);
-		if (!isDead)
+		if (damageAmount <= 0)
 		{
-			AttackUnit(GameManager.Instance.player);
+			Counterattack();
+			return;
 		}
+
+		Health = Mathf.Max(0, Health - damageAmount);
+		if (Health == 0)
+		{
+			OnDeath();
+			IsDead = true;
+		}
+		unitUI.UpdateText(this);
+
+		anim.SetTrigger("hurt");
 	}
 }

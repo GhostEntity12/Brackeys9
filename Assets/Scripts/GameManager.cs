@@ -22,10 +22,12 @@ public class GameManager : Singleton<GameManager>
 
 	Stack<Node> path = new();
 
+	bool gameOver;
+
 	// Update is called once per frame
 	void Update()
 	{
-		if (!player.IsMoving)
+		if (!gameOver && !player.IsMoving)
 		{
 			if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitTile, 20, 1 << 6) &&
 				hitTile.transform.TryGetComponent(out TileBase tile))
@@ -43,6 +45,7 @@ public class GameManager : Singleton<GameManager>
 				// Check if hit enemy
 				if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitEnemy, 20, 1 << 7) &&
 					hitEnemy.transform.TryGetComponent(out UnitEnemy enemy) &&
+					!enemy.IsDead &&
 					World.GetNodeFromWorldPosition(enemy.transform.position) == tile.Node)
 				{
 					Node enemyNode = World.GetNodeFromWorldPosition(enemy.transform.position);
@@ -115,5 +118,11 @@ public class GameManager : Singleton<GameManager>
 			cost += node.MovementCost;
 		}
 		return cost;
+	}
+
+	public void GameOver()
+	{
+		Debug.Log("Game Over!");
+		gameOver = true;
 	}
 }

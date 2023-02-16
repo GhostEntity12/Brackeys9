@@ -4,5 +4,5 @@ using UnityEngine;
 
 public class TileNormal : TileBase
 {
-	public override void Trigger() { }
+	public override void Trigger(Unit u) { }
 }

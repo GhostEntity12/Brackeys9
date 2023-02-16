@@ -7,27 +7,44 @@ using static UnityEditor.PlayerSettings;
 
 public class World : MonoBehaviour
 {
+	[SerializeField]
+	TileBase[] spawnableTilePrefabs;
+	[SerializeField]
+	float[] spawnProbabilities;
+
 	// NOTE: Nodes are traversal objects, tiles are GameObjects
 	public enum Direction { Left, Right, Up, Down }
 	const int WorldXSize = 11;
 	const int WorldYSize = 11;
 
-	// The prefabs of the tiles that can be spawned
-	public TileBase[] spawnableTilePrefabs;
+	/// <summary>
+	/// The prefabs of the tiles that can be spawned
+	/// </summary>
 
-	// The prefab of enemy to spawn
+	/// <summary>
+	/// The prefab of enemy to spawn
+	/// </summary>
 	public UnitEnemy enemyPrefab;
 
-	// The array of nodes in the world
+	/// <summary>
+	/// The array of nodes in the world
+	/// </summary>
 	Node[,] worldNodes;
-	// The array of tiles in the world
+	/// <summary>
+	/// The array of tiles in the world
+	/// </summary>
 	TileBase[,] worldTiles;
 
 	[SerializeField]
 	Vector2Int enemiesToSpawn = new(3, 5);
-	// Start is called before the first frame update
+
 	void Start()
 	{
+		float f = 0;
+		for (int i = 0; i < spawnProbabilities.Length; i++)
+		{
+			f += spawnProbabilities[i];
+		}
 		Generate();
 	}
 
@@ -45,14 +62,14 @@ public class World : MonoBehaviour
 			for (int x = 0; x < WorldXSize; x++)
 			{
 				// Instantiating tile
-				TileBase t = Instantiate(spawnableTilePrefabs[Random.Range(0, spawnableTilePrefabs.Length)], new Vector3(x + 0.5f, 0, y + 0.5f), Quaternion.Euler(90, 0, 0));
-				// Saving to arrays
-				worldNodes[x, y] = t.Node;
-				worldTiles[x, y] = t;
+				TileBase t = Instantiate(RandomTile(), new Vector3(x + 0.5f, 0, y + 0.5f), Quaternion.Euler(90, 0, 0));
 				// Initializing and setting parent
 				t.Node.Init(x, y, t.MovementCost, t.IsWalkable);
 				t.name = $"{x}, {y}";
 				t.transform.parent = row.transform;
+				// Saving to arrays
+				worldNodes[x, y] = t.Node;
+				worldTiles[x, y] = t;
 			}
 		}
 		// Setting neighbours
@@ -66,6 +83,30 @@ public class World : MonoBehaviour
 		}
 
 		// Spawn enemies
+		SpawnEnemies();
+	}
+
+	TileBase RandomTile()
+	{
+		float rand = Random.value;
+
+		for (int i = 0; i < spawnProbabilities.Length; i++)
+		{
+			float probability = spawnProbabilities[i];
+			if (rand > probability)
+			{
+				rand -= probability;
+			}
+			else
+			{
+				return spawnableTilePrefabs[i];
+			}
+		}
+		return spawnableTilePrefabs[^1];
+	}
+
+	void SpawnEnemies()
+	{
 		for (int i = 0; i < Random.Range(enemiesToSpawn.x, enemiesToSpawn.y); i++)
 		{
 			// 100 attempts per enemy
@@ -79,7 +120,10 @@ public class World : MonoBehaviour
 				// Disallow spawning on unwalkable tiles
 				if (enemyPlaceAttemptNode.IsWalkable)
 				{
-					Instantiate(enemyPrefab, new(enemyPlaceAttemptNode.XPos + 0.5f, 0.2f, enemyPlaceAttemptNode.YPos + 0.5f), Quaternion.identity).SetLocation(enemyPlaceAttemptNode, worldTiles[placePosition.x, placePosition.y]);
+					UnitEnemy enemy = Instantiate(enemyPrefab, new(enemyPlaceAttemptNode.XPos + 0.5f, 0.2f, enemyPlaceAttemptNode.YPos + 0.5f), Quaternion.identity);
+					enemy.SetLevel(Mathf.Max(1, GameManager.Instance.player.Level + Random.Range(-1, 2)));
+					enemy.AssignStats(enemy.Level + 5);
+					enemy.SetLocation(enemyPlaceAttemptNode, worldTiles[placePosition.x, placePosition.y]);
 					// Prevent the player from walking through enemies
 					enemyPlaceAttemptNode.SetWalkable(false);
 					break;
