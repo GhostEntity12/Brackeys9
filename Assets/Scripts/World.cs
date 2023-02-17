@@ -43,7 +43,7 @@ public class World : MonoBehaviour
 	[SerializeField]
 	Vector2Int farmsToSpawn = new(2, 5);
 	[SerializeField]
-	Vector2Int chestsToSpawn = new(0, 3);
+	float chestSpawnChance = 0.3f;
 	[SerializeField]
 	float altarBlessedSpawnChance = 0.4f;
 	[SerializeField]
@@ -55,6 +55,8 @@ public class World : MonoBehaviour
 	GameObject world;
 	GameObject featureContainer;
 	GameObject enemyContainer;
+
+	int queuedChests = 1;
 
 	public void Generate()
 	{
@@ -93,7 +95,7 @@ public class World : MonoBehaviour
 		enemyContainer = new("Enemy");
 		SpawnEnemies();
 		featureContainer = new("Features");
-		SpawnFeatures(chestsToSpawn, chestPrefab);
+		SpawnChests();
 		SpawnFeatures(farmsToSpawn, farmPrefab);
 		SpawnFeatures(townsToSpawn, townPrefab);
 		SpawnFeatures(altarBlessedSpawnChance, altarBlessedPrefab);
@@ -159,6 +161,28 @@ public class World : MonoBehaviour
 		}
 	}
 
+	public void AddChestsToQueue(int count) => queuedChests += count;
+
+	void SpawnChests()
+	{
+		if (queuedChests == 0) return;
+
+		if (Random.value < chestSpawnChance)
+		{
+			queuedChests--;
+			Vector2Int placePosition = new(Random.Range(0, WorldXSize), Random.Range(0, WorldYSize));
+			TileBase featureAttemptTile = worldTiles[placePosition.x, placePosition.y];
+			// Disallow spawning on unwalkable tiles
+			if (featureAttemptTile.Node.IsWalkable && !featureAttemptTile.Feature)
+			{
+				TileFeature feature = Instantiate(chestPrefab, featureAttemptTile.transform.position + Vector3.up * 0.05f, Quaternion.Euler(90, 0, 0));
+				features.Add(feature);
+				featureAttemptTile.SetFeature(feature);
+				feature.transform.SetParent(featureContainer.transform);
+			}
+		}
+	}
+
 	void SpawnFeatures(Vector2 count, TileFeature featurePrefab)
 	{
 		for (int i = 0; i < Random.Range(count.x, count.y); i++)
@@ -196,6 +220,7 @@ public class World : MonoBehaviour
 				TileFeature feature = Instantiate(featurePrefab, featureAttemptTile.transform.position + Vector3.up * 0.05f, Quaternion.Euler(90, 0, 0));
 				features.Add(feature);
 				featureAttemptTile.SetFeature(feature);
+				feature.transform.SetParent(featureContainer.transform);
 			}
 		}
 	}

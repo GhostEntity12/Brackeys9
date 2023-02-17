@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class UnitPlayer : Unit
 {
-	const float LevelCurveStrength = 1.403f;
+	const float LevelCurveStrength = 1.6f;
 	const float TargetLevel = 10;
 
 	[SerializeField]
@@ -43,7 +43,7 @@ public class UnitPlayer : Unit
 			}
 			else
 			{
-				return Mathf.FloorToInt((Mathf.Pow(LevelCurveStrength, TargetLevel - 1) + 9) + (Level - TargetLevel) * 10);
+				return Mathf.FloorToInt((Mathf.Pow(LevelCurveStrength, TargetLevel - 1) + 9) + (Level - TargetLevel) * 20);
 			}
 		}
 	}
@@ -171,6 +171,7 @@ public class UnitPlayer : Unit
 			xp = newXp - XpToNextLevel;
 			LevelUp();
 			xpDisplay.UpdateLevelText(Level);
+			GameManager.Instance.World.AddChestsToQueue(Random.value < 0.5f ? 1 : 2);
 		}
 		else
 		{
@@ -185,7 +186,6 @@ public class UnitPlayer : Unit
 	public void LevelUp()
 	{
 		IncreaseMaxHealth(1);
-		HealDamage(1);
 		Level++;
 		healthDisplay.UpdateHearts(Health, MaxHealth);
 		unitUI.UpdateText(this);
