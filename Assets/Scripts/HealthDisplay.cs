@@ -1,11 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class HealthDisplay : MonoBehaviour
 {
-	List<Image> hearts = new();
+	readonly List<Image> hearts = new();
 	[SerializeField]
 	RectTransform container;
 	[SerializeField]

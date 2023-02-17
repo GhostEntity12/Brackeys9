@@ -33,6 +33,7 @@ public class UnitEnemy : Unit
 		unitUI.Deactivate();
 		GameManager.Instance.player.GainXP(XpToGive);
 		location.SetWalkable(true);
+		GameManager.Instance.World.GetTile(location.XPos, location.YPos).RemoveEnemy();
 		anim.SetTrigger("death");
 	}
 

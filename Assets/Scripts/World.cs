@@ -1,9 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 public class World : MonoBehaviour
 {
@@ -25,7 +21,11 @@ public class World : MonoBehaviour
 	/// The prefab of enemy to spawn
 	/// </summary>
 	public UnitEnemy enemyPrefab;
-
+	public TileFeature chestPrefab;
+	public TileFeature farmPrefab;
+	public TileFeature townPrefab;
+	public TileFeature altarBlessedPrefab;
+	public TileFeature altarCursedPrefab;
 	/// <summary>
 	/// The array of nodes in the world
 	/// </summary>
@@ -35,28 +35,34 @@ public class World : MonoBehaviour
 	/// </summary>
 	TileBase[,] worldTiles;
 
+	[Header("Feature Chances")]
 	[SerializeField]
 	Vector2Int enemiesToSpawn = new(3, 5);
+	[SerializeField]
+	Vector2Int townsToSpawn = new(0, 2);
+	[SerializeField]
+	Vector2Int farmsToSpawn = new(2, 5);
+	[SerializeField]
+	Vector2Int chestsToSpawn = new(0, 3);
+	[SerializeField]
+	float altarBlessedSpawnChance = 0.4f;
+	[SerializeField]
+	float altarCursedSpawnChance = 0.4f;
 
-	List<UnitEnemy> enemies = new();
+	readonly List<UnitEnemy> enemies = new();
+	readonly List<TileFeature> features = new();
 
-	void Start()
-	{
-		float f = 0;
-		for (int i = 0; i < spawnProbabilities.Length; i++)
-		{
-			f += spawnProbabilities[i];
-		}
-		Generate();
-	}
+	GameObject world;
+	GameObject featureContainer;
+	GameObject enemyContainer;
 
-	void Generate()
+	public void Generate()
 	{
 		worldNodes = new Node[WorldXSize, WorldYSize];
 		worldTiles = new TileBase[WorldXSize, WorldYSize];
 
 		// Spawning tiles
-		GameObject world = new("World");
+		world = new("World");
 		for (int y = 0; y < WorldYSize; y++)
 		{
 			GameObject row = new($"Row {y}");
@@ -64,7 +70,7 @@ public class World : MonoBehaviour
 			for (int x = 0; x < WorldXSize; x++)
 			{
 				// Instantiating tile
-				TileBase t = Instantiate(RandomTile(), new Vector3(x + 0.5f, 0, y + 0.5f), Quaternion.Euler(90, 0, 0));
+				TileBase t = Instantiate(RandomTilePrefab(), new Vector3(x + 0.5f, 0, y + 0.5f), Quaternion.Euler(90, 0, 0));
 				// Initializing and setting parent
 				t.Node.Init(x, y, t.MovementCost, t.IsWalkable);
 				t.name = $"{x}, {y}";
@@ -84,11 +90,26 @@ public class World : MonoBehaviour
 			}
 		}
 
-		// Spawn enemies
+		enemyContainer = new("Enemy");
 		SpawnEnemies();
+		featureContainer = new("Features");
+		SpawnFeatures(chestsToSpawn, chestPrefab);
+		SpawnFeatures(farmsToSpawn, farmPrefab);
+		SpawnFeatures(townsToSpawn, townPrefab);
+		SpawnFeatures(altarBlessedSpawnChance, altarBlessedPrefab);
+		SpawnFeatures(altarCursedSpawnChance, altarCursedPrefab);
 	}
 
-	TileBase RandomTile()
+	public void Destroy()
+	{
+		Destroy(world);
+		Destroy(enemyContainer);
+		Destroy(featureContainer);
+		enemies.Clear();
+		features.Clear();
+	}
+
+	TileBase RandomTilePrefab()
 	{
 		float rand = Random.value;
 
@@ -129,10 +150,53 @@ public class World : MonoBehaviour
 					// Prevent the player from walking through enemies
 					enemyPlaceAttemptNode.SetWalkable(false);
 					enemies.Add(enemy);
+					worldTiles[placePosition.x, placePosition.y].SetEnemy(enemy);
+					enemy.transform.SetParent(enemyContainer.transform);
 					break;
 				}
 
 			} while (attempts < maxAttempts);
+		}
+	}
+
+	void SpawnFeatures(Vector2 count, TileFeature featurePrefab)
+	{
+		for (int i = 0; i < Random.Range(count.x, count.y); i++)
+		{
+			// 100 attempts per feature
+			int maxAttempts = 100;
+			int attempts = 0;
+			do
+			{
+				attempts++;
+				Vector2Int placePosition = new(Random.Range(0, WorldXSize), Random.Range(0, WorldYSize));
+				TileBase featureAttemptTile = worldTiles[placePosition.x, placePosition.y];
+				// Disallow spawning on unwalkable tiles
+				if (featureAttemptTile.Node.IsWalkable && !featureAttemptTile.Feature)
+				{
+					TileFeature feature = Instantiate(featurePrefab, featureAttemptTile.transform.position + Vector3.up * 0.05f, Quaternion.Euler(90, 0, 0));
+					features.Add(feature);
+					featureAttemptTile.SetFeature(feature);
+					feature.transform.SetParent(featureContainer.transform);
+					break;
+				}
+
+			} while (attempts < maxAttempts);
+		}
+	}
+	void SpawnFeatures(float chance, TileFeature featurePrefab)
+	{
+		if (Random.value < chance)
+		{
+			Vector2Int placePosition = new(Random.Range(0, WorldXSize), Random.Range(0, WorldYSize));
+			TileBase featureAttemptTile = worldTiles[placePosition.x, placePosition.y];
+			// Disallow spawning on unwalkable tiles
+			if (featureAttemptTile.Node.IsWalkable && !featureAttemptTile.Feature)
+			{
+				TileFeature feature = Instantiate(featurePrefab, featureAttemptTile.transform.position + Vector3.up * 0.05f, Quaternion.Euler(90, 0, 0));
+				features.Add(feature);
+				featureAttemptTile.SetFeature(feature);
+			}
 		}
 	}
 

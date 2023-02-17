@@ -1,10 +1,12 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class DoomsdayClock : MonoBehaviour
 {
+
+	[field: SerializeField]
+	public int Actions { get; private set; }
+
 	[SerializeField]
 	Image previewBar;
 	[SerializeField]
@@ -14,19 +16,22 @@ public class DoomsdayClock : MonoBehaviour
 
 	public void ShowPreview(int cost)
 	{
-		actualBar.fillAmount = remaining - ((float)cost / GameManager.Instance.Actions);
+		actualBar.fillAmount = remaining - ((float)cost / Actions);
 	}
 
-	public void Consume(int amount)
+	public bool Consume(int amount)
 	{
-		remaining = Mathf.Max(0, remaining - ((float)amount / GameManager.Instance.Actions));
+		remaining = Mathf.Max(0, remaining - ((float)amount / Actions));
 		actualBar.fillAmount = remaining;
 		previewBar.fillAmount = remaining;
 
 		if (remaining == 0)
 		{
 			GameManager.Instance.GenerateNewWorld();
+			ResetBar();
+			return true;
 		}
+		return false;
 	}
 
 	public void ResetBar()

@@ -15,5 +15,12 @@ public abstract class TileBase : MonoBehaviour
 	[field: SerializeField]
 	public int DefenceModifier { get; protected set; }
 
-	public abstract void Trigger(Unit u);
+	public UnitEnemy Enemy { get; protected set; }
+	public TileFeature Feature { get; protected set; }
+
+	public void SetEnemy(UnitEnemy enemy) => Enemy = enemy;
+
+	public void SetFeature(TileFeature feature) => Feature = feature;
+
+	public void RemoveEnemy() => Enemy = null;
 }
