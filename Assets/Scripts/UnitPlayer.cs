@@ -1,4 +1,4 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,33 +7,118 @@ public class UnitPlayer : Unit
 	const float LevelCurveStrength = 1.403f;
 	const float TargetLevel = 10;
 
+	[SerializeField]
+	float yOffset = 0.2f;
+	[SerializeField]
+	float speed = 1f;
+	[SerializeField]
+	float allowedError = 0.01f;
+
+	Stack<Node> path = new();
+	Vector3 currentWaypoint;
+	public Node DestinationNode { get; private set; }
+	public bool IsMoving { get; private set; }
+
+	UnitEnemy targetedEnemy = null;
+
+	bool queueAttack;
+
 	int xp;
-	int xpToNextLevel
+	int XpToNextLevel
 	{
 		get
 		{
-			if (level <= TargetLevel)
+			if (Level <= TargetLevel)
 			{
-				return Mathf.FloorToInt(Mathf.Pow(LevelCurveStrength, level - 1) + 9);
+				return Mathf.FloorToInt(Mathf.Pow(LevelCurveStrength, Level - 1) + 9);
 			}
 			else
 			{
-				return Mathf.FloorToInt((Mathf.Pow(LevelCurveStrength, TargetLevel - 1) + 9) + (level - TargetLevel) * 10);
+				return Mathf.FloorToInt((Mathf.Pow(LevelCurveStrength, TargetLevel - 1) + 9) + (Level - TargetLevel) * 10);
 			}
 		}
 	}
 
 	// Start is called before the first frame update
-	void Awake()
+	void Start()
 	{
-		AssignStats();
+		Offence = 2;
+		Defence = 2;
+		MaxHealth = 2;
+		Health = MaxHealth;
+
+		DestinationNode = GameManager.Instance.World.GetNodeFromWorldPosition(transform.position);
+		currentWaypoint = new(DestinationNode.XPos + 0.5f, yOffset, DestinationNode.YPos + 0.5f);
+		transform.position = transform.position + Vector3.up * yOffset;
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
+		anim.SetBool("isMoving", IsMoving);
+		if (Vector3.Distance(transform.position, currentWaypoint) < allowedError)
+		{
+			if (path.Count > 0)
+			{
+				SetNextWaypoint();
+			}
+			else
+			{
+				IsMoving = false;
+				// Activate tile related events (including stat changes)
+				TileBase destinationTile = GameManager.Instance.World.GetTile(DestinationNode.XPos, DestinationNode.YPos);
+				OffenceModifier = destinationTile.OffenceModifier;
+				DefenceModifier = destinationTile.DefenceModifier;
+				destinationTile.Trigger(this);
+				unitUI.UpdateText(this);
 
+				// Attack the target if set
+				if (targetedEnemy && !queueAttack)
+				{
+					sprite.flipX = targetedEnemy.transform.position.x < transform.position.x;
+					anim.SetTrigger("attack");
+					queueAttack = true;
+				}
+				return;
+			}
+		}
+		else
+		{
+			transform.position = Vector3.MoveTowards(transform.position, currentWaypoint, speed * Time.deltaTime);
+			sprite.flipX = currentWaypoint.x < transform.position.x;
+
+		}
 	}
+
+	public void AttackTarget()
+	{
+		AttackUnit(targetedEnemy);
+		targetedEnemy = null;
+		queueAttack = false;
+	}
+
+	public void SetPath(Stack<Node> newPath)
+	{
+		ResetModifiers();
+		if (newPath == null)
+		{
+			Debug.LogError("Setting Null path!");
+			return;
+		}
+		path = newPath;
+		// Save final node
+		DestinationNode = newPath.ToArray()[^1];
+		SetNextWaypoint();
+	}
+
+	void SetNextWaypoint()
+	{
+		Node newNode = path.Pop();
+		currentWaypoint = new(newNode.XPos + 0.5f, yOffset, newNode.YPos + 0.5f);
+		IsMoving = true;
+	}
+
+	public void SetTargetedEnemy(UnitEnemy enemy) => targetedEnemy = enemy;
 
 	/// <summary>
 	/// Grants the player  a given amount of xp
@@ -41,11 +126,17 @@ public class UnitPlayer : Unit
 	/// <param name="xpToGain">The amount of xp for the player to gain</param>
 	public void GainXP(int xpToGain)
 	{
+		Debug.Log("Gained XP!");
 		int newXp = xp + xpToGain;
-		if (newXp > xpToNextLevel)
+		if (newXp > XpToNextLevel)
 		{
-			xp = newXp - xpToNextLevel;
+			Debug.Log("Levelled up!");
+			xp = newXp - XpToNextLevel;
 			LevelUp();
+		}
+		else
+		{
+			xp = newXp;
 		}
 	}
 
@@ -56,14 +147,15 @@ public class UnitPlayer : Unit
 	{
 		IncreaseMaxHealth(1);
 		HealDamage(1);
-		level++;
+		Level++;
+		unitUI.UpdateText(this);
 	}
 
 	/// <summary>
 	/// Permanently increases the unit's max health
 	/// </summary>
 	/// <param name="increaseAmount"></param>
-	public void IncreaseMaxHealth(int increaseAmount) => MaxHealth = increaseAmount;
+	public void IncreaseMaxHealth(int increaseAmount) => MaxHealth += increaseAmount;
 
 	/// <summary>
 	/// Permanantly increases the unit's offence stat
@@ -81,6 +173,7 @@ public class UnitPlayer : Unit
 	{
 		// GameOver;
 		// Bring up lose screen
-		throw new System.NotImplementedException();
+		anim.SetTrigger("death");
+		GameManager.Instance.GameOver();
 	}
 }

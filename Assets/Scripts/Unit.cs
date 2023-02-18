@@ -1,17 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 
 public abstract class Unit : MonoBehaviour
 {
 
-
-	protected bool isDead = false;
-
-	//Properties
-	[Header("Stats")]
-	protected int level = 1;
+	public bool IsDead { get; protected set; } = false;
+	[field: SerializeField]
+	public int Level { get; protected set; }
 	[field: SerializeField]
 	public int MaxHealth { get; protected set; } = 1;
 	[field: SerializeField]
@@ -19,50 +13,67 @@ public abstract class Unit : MonoBehaviour
 	[field: SerializeField]
 	public int Offence { get; protected set; }
 	[field: SerializeField]
+	public int OffenceModifier { get; protected set; } = 0;
+	[field: SerializeField]
 	public int Defence { get; protected set; }
+	[field: SerializeField]
+	public int DefenceModifier { get; protected set; } = 0;
 
-	public int calculatedOffence => Offence + offenceModifier;
-	public int calculatedDefence => Defence + defenceModifier;
+	public int CalculatedOffence => Mathf.Max(0, Offence + OffenceModifier);
+	public int CalculatedDefence => Mathf.Max(0, Defence + DefenceModifier);
 
-	protected int offenceModifier = 0;
-	protected int defenceModifier = 0;
+	protected Animator anim;
+	protected SpriteRenderer sprite;
 
-	public UnitUI unitUI;
 
+	[SerializeField]
+	protected UnitUI unitUI;
+
+	private void Awake()
+	{
+		anim = GetComponent<Animator>();
+		sprite = GetComponent<SpriteRenderer>();
+	}
+
+	public void SetLevel(int level) => Level = level;
 
 	/// <summary>
 	/// Attacks a given unit
 	/// </summary>
 	/// <param name="target">The unit this unit should attack</param>
-	public void AttackUnit(Unit target)
+	public virtual void AttackUnit(Unit target)
 	{
-		int damageToDeal = Mathf.Max(0, calculatedOffence - target.calculatedDefence);
+		int damageToDeal = Mathf.Max(0, CalculatedOffence - target.CalculatedDefence);
 
 		target.TakeDamage(damageToDeal);
-		if (!target.isDead)
-		{
-			target.AttackUnit(this);
-		}
 	}
 
 	/// <summary>
 	/// Heals damage done to the unit
 	/// </summary>
 	/// <param name="healAmount">The amount of health to recover</param>
-	public void HealDamage(int healAmount) => Health = Mathf.Min(MaxHealth, Health + healAmount);
+	public virtual void HealDamage(int healAmount)
+	{
+		Health = Mathf.Min(MaxHealth, Health + healAmount);
+	}
 
 	/// <summary>
 	/// Damages the unit
 	/// </summary>
 	/// <param name="damageAmount">The amount to damage the user</param>
-	public void TakeDamage(int damageAmount)
+	public virtual void TakeDamage(int damageAmount)
 	{
+		if (damageAmount <= 0) return;
+
 		Health = Mathf.Max(0, Health - damageAmount);
 		if (Health == 0)
 		{
 			OnDeath();
-			isDead = true;
+			IsDead = true;
 		}
+		unitUI.UpdateText(this);
+
+		anim.SetTrigger("hurt");
 	}
 
 	protected abstract void OnDeath();
@@ -72,16 +83,16 @@ public abstract class Unit : MonoBehaviour
 	/// </summary>
 	public void ResetModifiers()
 	{
-		offenceModifier = 0;
-		defenceModifier = 0;
+		OffenceModifier = 0;
+		DefenceModifier = 0;
 	}
 
 	/// <summary>
 	/// Randomly assigns stats
 	/// </summary>
-	public void AssignStats()
+	public void AssignStats(int numberOfStats)
 	{
-		for (int i = 0; i < level + 5; i++)
+		for (int i = 0; i < numberOfStats; i++)
 		{
 			switch (Random.Range(0, 3))
 			{
@@ -99,6 +110,6 @@ public abstract class Unit : MonoBehaviour
 			}
 		}
 		Health = MaxHealth;
-		unitUI.UpdateText(Health, MaxHealth, Offence, Defence);
+		unitUI.UpdateText(this);
 	}
 }
