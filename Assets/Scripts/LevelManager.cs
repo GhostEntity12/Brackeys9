@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using TMPro;
 using UnityEngine;
 
 public class LevelManager : MonoBehaviour
@@ -22,6 +24,15 @@ public class LevelManager : MonoBehaviour
 	[SerializeField]
 	XPDisplay xpDisplayPrefab;
 
+	[Header("Victory")]
+	[SerializeField]
+	CanvasGroup bgFade;
+	[SerializeField]
+	RectTransform endScreenContainer;
+	[SerializeField]
+	EndScreen victory;
+	[SerializeField]
+	EndScreen defeat;
 
 	public World World { get; private set; }
 	UnitPlayer player;
@@ -33,6 +44,7 @@ public class LevelManager : MonoBehaviour
 	Stack<Node> path;
 	bool gameEnded;
 	public bool InEndlessMode { get; private set; }
+
 
 	private void Awake()
 	{
@@ -117,27 +129,20 @@ public class LevelManager : MonoBehaviour
 		gameEnded = true;
 		GameManager.Instance.Save.endlessModeUnlocked = true;
 
-		if (InEndlessMode)
-		{
-			if (player.Level > GameManager.Instance.Save.bestScoreEndlessLevel)
-			{
-				GameManager.Instance.Save.bestScoreEndlessLevel = World.Generations;
-			}
-			else
-			{
+		victory.CanvasGroup.alpha = 1;
 
-			}
+		LeanTween.alphaCanvas(bgFade, 1, 0.5f);
+		LeanTween.moveY(endScreenContainer, 0, 0.5f).setEaseOutBack();
+
+		victory.ScoreText.text = $"You beat Sketchbook Quest in\r\n {World.Generations} worlds!";
+		if (World.Generations >= GameManager.Instance.Save.bestScoreNormalGeneration)
+		{
+			victory.HighscoreText.text = $"Previous best:\n  {GameManager.Instance.Save.bestScoreNormalGeneration} worlds";
 		}
 		else
 		{
-			if (World.Generations < GameManager.Instance.Save.bestScoreNormalGeneration)
-			{
-				GameManager.Instance.Save.bestScoreNormalGeneration = World.Generations;
-			}
-			else
-			{
-
-			}
+			GameManager.Instance.Save.bestScoreNormalGeneration = World.Generations;
+			victory.HighscoreText.text = "New Personal Best!";
 		}
 
 		_ = ReadWrite.Write(GameManager.Instance.Save);
@@ -146,5 +151,41 @@ public class LevelManager : MonoBehaviour
 	public void GameOver()
 	{
 		gameEnded = true;
+
+		defeat.CanvasGroup.alpha = 1;
+
+		LeanTween.alphaCanvas(bgFade, 1, 0.5f);
+		LeanTween.moveY(endScreenContainer, 0, 0.5f).setEaseOutBack();
+
+		if (InEndlessMode)
+		{
+			defeat.ScoreText.text = $"You survived {World.Generations} worlds\r\n and made it to Level {player.Level}";
+			if (player.Level <= GameManager.Instance.Save.bestScoreEndlessLevel)
+			{
+				defeat.HighscoreText.text = $"Previous best:\n  Level{GameManager.Instance.Save.bestScoreEndlessLevel}";
+			}
+			else
+			{
+				GameManager.Instance.Save.bestScoreEndlessLevel = World.Generations;
+				defeat.HighscoreText.text = "New Personal Best!";
+			}
+		}
+		else
+		{
+			Debug.Log("yay");
+			defeat.ScoreText.text = $"You survived {World.Generations} worlds\r\n and made it to Level {player.Level}";
+			defeat.HighscoreText.text = $"Previous best:\n  {GameManager.Instance.Save.bestScoreNormalGeneration} worlds";
+		}
 	}
+}
+
+[Serializable]
+public class EndScreen
+{
+	[field: SerializeField]
+	public CanvasGroup CanvasGroup { get; private set; }
+	[field: SerializeField]
+	public TextMeshProUGUI ScoreText { get; private set; }
+	[field: SerializeField]
+	public TextMeshProUGUI HighscoreText { get; private set; }
 }

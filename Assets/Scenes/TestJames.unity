@@ -638,17 +638,17 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 293873260}
-  m_LocalRotation: {x: -0, y: -0, z: 0.12991878, w: 0.99152464}
+  m_LocalRotation: {x: -0, y: -0, z: 0.1063916, w: 0.9943243}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 846251546}
   m_RootOrder: -1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 14.93}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 12.215}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 130, y: 90.6}
+  m_AnchoredPosition: {x: -107.6, y: 87}
   m_SizeDelta: {x: 250, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &293873262
@@ -758,7 +758,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -2}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -111, y: 93}
+  m_AnchoredPosition: {x: -111.4, y: 82.6}
   m_SizeDelta: {x: -305.7, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &346905763
@@ -897,7 +897,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -10.42}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 123, y: 120.3}
+  m_AnchoredPosition: {x: 113.3, y: 124.2}
   m_SizeDelta: {x: 250, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &551098031
@@ -1388,7 +1388,7 @@ CanvasGroup:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 846251545}
   m_Enabled: 1
-  m_Alpha: 1
+  m_Alpha: 0
   m_Interactable: 0
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
@@ -1567,7 +1567,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 1.1}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 20, y: 205.94}
+  m_AnchoredPosition: {x: 19.8, y: 214.6}
   m_SizeDelta: {x: -40, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &866182109
@@ -1592,7 +1592,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'You beat Sketchbook Quest in
 
-    {0} generations!'
+    {0} worlds!'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2016,6 +2016,16 @@ MonoBehaviour:
     type: 3}
   xpDisplayPrefab: {fileID: 8960966681981086078, guid: 96130bbe347ad6b49abe92db30c3fd8e,
     type: 3}
+  bgFade: {fileID: 791597038}
+  endScreenContainer: {fileID: 1360578877}
+  victory:
+    <CanvasGroup>k__BackingField: {fileID: 966581472}
+    <ScoreText>k__BackingField: {fileID: 866182109}
+    <HighscoreText>k__BackingField: {fileID: 346905763}
+  defeat:
+    <CanvasGroup>k__BackingField: {fileID: 846251548}
+    <ScoreText>k__BackingField: {fileID: 1200856455}
+    <HighscoreText>k__BackingField: {fileID: 1652202035}
 --- !u!4 &1181513046
 Transform:
   m_ObjectHideFlags: 0
@@ -2066,7 +2076,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 1.1}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 20.00003, y: 205.94003}
+  m_AnchoredPosition: {x: 19.8, y: 211.3}
   m_SizeDelta: {x: -40, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1200856455
@@ -2089,7 +2099,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Survived {0] generations \nand made it to level {1}"
+  m_text: "You survived {0} worlds \nand made it to level {1}"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2385,6 +2395,50 @@ Transform:
   m_Father: {fileID: 346165644}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: -6.55}
+--- !u!1 &1339084901
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1339084903}
+  - component: {fileID: 1339084902}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1339084902
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339084901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 786f083069804f54298c5f6790985a36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1339084903
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339084901}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 437.5, y: 738.1875, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1360578876
 GameObject:
   m_ObjectHideFlags: 0
@@ -2445,7 +2499,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 704d4d885d2a2ba45a0c26941657480c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 4fa78fdfcf80e8448a937d01973e62b9, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2963,7 +3017,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -2}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -111, y: 93.00003}
+  m_AnchoredPosition: {x: 169.9, y: 41.8}
   m_SizeDelta: {x: -305.7, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1652202035
