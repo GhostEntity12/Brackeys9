@@ -58,8 +58,11 @@ public class World : MonoBehaviour
 
 	int queuedChests = 1;
 
+	public int Generations { get; private set; }
+
 	public void Generate()
 	{
+		Generations++;
 		worldNodes = new Node[WorldXSize, WorldYSize];
 		worldTiles = new TileBase[WorldXSize, WorldYSize];
 

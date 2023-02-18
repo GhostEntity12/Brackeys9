@@ -24,11 +24,14 @@ public class GameManager : Singleton<GameManager>
 	bool gameOver;
 	[field: SerializeField]
 	public DoomsdayClock Clock { get; private set; }
-	
+
 	public bool EndlessMode { get; private set; }
+
+	SaveData save;
 
 	private void Start()
 	{
+		save = ReadWrite.Read();
 		World.Generate();
 	}
 
@@ -127,6 +130,13 @@ public class GameManager : Singleton<GameManager>
 	public void Victory()
 	{
 		gameOver = true;
+		save.endlessModeUnlocked = true;
+		if (save.bestScore > World.Generations)
+		{
+			save.bestScore = World.Generations;
+		}
+			
+		_ = ReadWrite.Write(save);
 	}
 
 	public void GameOver()

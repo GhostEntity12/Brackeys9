@@ -189,7 +189,7 @@ public class UnitPlayer : Unit
 		unitUI.UpdateText(this);
 		xpDisplay.UpdateLevelText(Level);
 		GameManager.Instance.World.AddChestsToQueue(Random.value < 0.5f ? 1 : 2);
-		if (Level > 10 && !GameManager.Instance.EndlessMode)
+		if (Level >= 10 && !GameManager.Instance.EndlessMode)
 		{
 			GameManager.Instance.Victory();
 		}

@@ -919,7 +919,7 @@ GameObject:
   - component: {fileID: 315567677}
   - component: {fileID: 315567676}
   m_Layer: 5
-  m_Name: MainCanvas
+  m_Name: ProgressCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
