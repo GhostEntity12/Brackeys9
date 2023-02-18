@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Billboard : MonoBehaviour
 {
-	Camera c;
+	private Camera cam;
 	private Quaternion cache;
 
 	[SerializeField]
@@ -10,14 +10,14 @@ public class Billboard : MonoBehaviour
 
 	private void Awake()
 	{
-		c = Camera.main;
+		cam = Camera.main;
 		cache = transform.rotation;
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
-		transform.rotation = doBillboard ? c.transform.rotation : cache;
+		transform.rotation = doBillboard ? cam.transform.rotation : cache;
 	}
 
 	public void UpdateCache(Quaternion newCache) => cache = newCache;

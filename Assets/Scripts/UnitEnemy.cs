@@ -2,11 +2,20 @@ using UnityEngine;
 
 public class UnitEnemy : Unit
 {
-	Node location;
+	Tile location;
+	UnitPlayer player;
 
-	public void SetLocation(Node node, TileBase tile)
+	public void Init(UnitPlayer p, Tile loc)
 	{
-		location = node;
+		player = p;
+		SetLocation(loc);
+		location.Node.SetWalkable(false);
+		SetLevelAndStats(Mathf.Max(1, player.Level + Random.Range(-1, 2)));
+	}
+
+	public void SetLocation(Tile tile)
+	{
+		location = tile;
 
 		OffenceModifier = tile.OffenceModifier;
 		DefenceModifier = tile.DefenceModifier;
@@ -16,24 +25,22 @@ public class UnitEnemy : Unit
 
 	public void Counterattack()
 	{
-		UnitPlayer p = GameManager.Instance.player;
-		sprite.flipX = p.transform.position.x > transform.position.x || p.transform.position.x >= transform.position.x && sprite.flipX;
+		sprite.flipX = player.transform.position.x > transform.position.x || (player.transform.position.x >= transform.position.x && sprite.flipX);
 		if (!IsDead)
 		{
 			anim.SetTrigger("attack");
 		}
 	}
 
-	public void AttackPlayer() => AttackUnit(GameManager.Instance.player);
+	public void AttackPlayer() => AttackUnit(player);
 
 	public int XpToGive => Mathf.FloorToInt(Level * 3f);
 
 	protected override void OnDeath()
 	{
 		unitUI.Deactivate();
-		GameManager.Instance.player.GainXP(XpToGive);
-		location.SetWalkable(true);
-		GameManager.Instance.World.GetTile(location.XPos, location.YPos).RemoveEnemy();
+		player.GainXP(XpToGive);
+		location.Node.SetWalkable(true);
 		anim.SetTrigger("death");
 	}
 
@@ -44,8 +51,7 @@ public class UnitEnemy : Unit
 	/// <param name="damageAmount">The amount to damage the user</param>
 	public override void TakeDamage(int damageAmount)
 	{
-		UnitPlayer p = GameManager.Instance.player;
-		sprite.flipX = p.transform.position.x > transform.position.x || p.transform.position.x >= transform.position.x && sprite.flipX;
+		sprite.flipX = player.transform.position.x > transform.position.x || (player.transform.position.x >= transform.position.x && sprite.flipX);
 		if (damageAmount <= 0)
 		{
 			Counterattack();

@@ -3,10 +3,7 @@ using UnityEngine;
 
 public class World : MonoBehaviour
 {
-	[SerializeField]
-	TileBase[] spawnableTilePrefabs;
-	[SerializeField]
-	float[] spawnProbabilities;
+	UnitPlayer player;
 
 	// NOTE: Nodes are traversal objects, tiles are GameObjects
 	public enum Direction { Left, Right, Up, Down }
@@ -14,26 +11,35 @@ public class World : MonoBehaviour
 	const int WorldYSize = 11;
 
 	/// <summary>
-	/// The prefabs of the tiles that can be spawned
-	/// </summary>
-
-	/// <summary>
-	/// The prefab of enemy to spawn
-	/// </summary>
-	public UnitEnemy enemyPrefab;
-	public TileFeature chestPrefab;
-	public TileFeature farmPrefab;
-	public TileFeature townPrefab;
-	public TileFeature altarBlessedPrefab;
-	public TileFeature altarCursedPrefab;
-	/// <summary>
 	/// The array of nodes in the world
 	/// </summary>
 	Node[,] worldNodes;
 	/// <summary>
 	/// The array of tiles in the world
 	/// </summary>
-	TileBase[,] worldTiles;
+	Tile[,] worldTiles;
+
+	[Header("Tiles")]
+	[SerializeField]
+	Tile[] spawnableTilePrefabs;
+	[SerializeField]
+	float[] spawnProbabilities;
+
+	/// <summary>
+	/// The spawnable prefabs 
+	/// </summary>
+	[Header("Prefabs")]
+	[SerializeField]
+	UnitEnemy enemyPrefab;
+	[SerializeField] TileFeature chestPrefab;
+	[SerializeField]
+	TileFeature farmPrefab;
+	[SerializeField]
+	TileFeature townPrefab;
+	[SerializeField]
+	TileFeature altarBlessedPrefab;
+	[SerializeField]
+	TileFeature altarCursedPrefab;
 
 	[Header("Feature Chances")]
 	[SerializeField]
@@ -52,6 +58,7 @@ public class World : MonoBehaviour
 	readonly List<UnitEnemy> enemies = new();
 	readonly List<TileFeature> features = new();
 
+	// Containers (used for destruction of the world)
 	GameObject world;
 	GameObject featureContainer;
 	GameObject enemyContainer;
@@ -60,11 +67,26 @@ public class World : MonoBehaviour
 
 	public int Generations { get; private set; }
 
-	public void Generate()
+
+	/// <summary>
+	/// Destroys the previous world and generates a new one
+	/// </summary>
+	public void Regenerate()
+	{
+		Destroy();
+		Generate();
+	}
+
+	/// <summary>
+	/// Generates a new world
+	/// </summary>
+	void Generate()
 	{
 		Generations++;
+
+		// Prepare arrays
 		worldNodes = new Node[WorldXSize, WorldYSize];
-		worldTiles = new TileBase[WorldXSize, WorldYSize];
+		worldTiles = new Tile[WorldXSize, WorldYSize];
 
 		// Spawning tiles
 		world = new("World");
@@ -75,7 +97,7 @@ public class World : MonoBehaviour
 			for (int x = 0; x < WorldXSize; x++)
 			{
 				// Instantiating tile
-				TileBase t = Instantiate(RandomTilePrefab(), new Vector3(x + 0.5f, 0, y + 0.5f), Quaternion.Euler(90, 0, 0));
+				Tile t = Instantiate(RandomTilePrefab(), new Vector3(x + 0.5f, 0, y + 0.5f), Quaternion.Euler(90, 0, 0));
 				// Initializing and setting parent
 				t.Node.Init(x, y, t.MovementCost, t.IsWalkable);
 				t.name = $"{x}, {y}";
@@ -95,9 +117,10 @@ public class World : MonoBehaviour
 			}
 		}
 
+		// Spawn extras
 		enemyContainer = new("Enemy");
-		SpawnEnemies();
 		featureContainer = new("Features");
+		SpawnEnemies();
 		SpawnChests();
 		SpawnFeatures(farmsToSpawn, farmPrefab);
 		SpawnFeatures(townsToSpawn, townPrefab);
@@ -105,16 +128,24 @@ public class World : MonoBehaviour
 		SpawnFeatures(altarCursedSpawnChance, altarCursedPrefab);
 	}
 
+	/// <summary>
+	/// Destroys the world
+	/// </summary>
 	public void Destroy()
 	{
+		enemies.Clear();
+		features.Clear();
+
 		Destroy(world);
 		Destroy(enemyContainer);
 		Destroy(featureContainer);
-		enemies.Clear();
-		features.Clear();
 	}
 
-	TileBase RandomTilePrefab()
+	/// <summary>
+	/// Returns a random tile prefab
+	/// </summary>
+	/// <returns></returns>
+	Tile RandomTilePrefab()
 	{
 		float rand = Random.value;
 
@@ -135,6 +166,9 @@ public class World : MonoBehaviour
 
 	void SpawnEnemies()
 	{
+		// Cache player node
+		Node playerNode = GetNodeFromWorldPosition(player.transform.position);
+
 		for (int i = 0; i < Random.Range(enemiesToSpawn.x, enemiesToSpawn.y); i++)
 		{
 			// 100 attempts per enemy
@@ -143,29 +177,23 @@ public class World : MonoBehaviour
 			do
 			{
 				attempts++;
+				// Random tile
 				Vector2Int placePosition = new(Random.Range(0, WorldXSize), Random.Range(0, WorldYSize));
 				Node enemyPlaceAttemptNode = worldNodes[placePosition.x, placePosition.y];
-				// Disallow spawning on unwalkable tiles
-				if (enemyPlaceAttemptNode.IsWalkable)
+
+				// Disallow spawning on unwalkable tiles or player's tile
+				if (enemyPlaceAttemptNode.IsWalkable && enemyPlaceAttemptNode != playerNode)
 				{
 					UnitEnemy enemy = Instantiate(enemyPrefab, new(enemyPlaceAttemptNode.XPos + 0.5f, 0.2f, enemyPlaceAttemptNode.YPos + 0.5f), Quaternion.identity);
-					enemy.SetLevel(Mathf.Max(1, GameManager.Instance.player.Level + Random.Range(-1, 2)));
-					enemy.AssignStats(enemy.Level + 5);
-					enemy.SetLocation(enemyPlaceAttemptNode, worldTiles[placePosition.x, placePosition.y]);
-					// Prevent the player from walking through enemies
-					enemyPlaceAttemptNode.SetWalkable(false);
 					enemies.Add(enemy);
-					worldTiles[placePosition.x, placePosition.y].SetEnemy(enemy);
 					enemy.transform.SetParent(enemyContainer.transform);
+					enemy.Init(player, worldTiles[placePosition.x, placePosition.y]);
 					break;
 				}
 
 			} while (attempts < maxAttempts);
 		}
 	}
-
-	public void AddChestsToQueue(int count) => queuedChests += count;
-
 	void SpawnChests()
 	{
 		if (queuedChests == 0) return;
@@ -174,21 +202,15 @@ public class World : MonoBehaviour
 		{
 			queuedChests--;
 			Vector2Int placePosition = new(Random.Range(0, WorldXSize), Random.Range(0, WorldYSize));
-			TileBase featureAttemptTile = worldTiles[placePosition.x, placePosition.y];
+			Tile featureAttemptTile = worldTiles[placePosition.x, placePosition.y];
 			// Disallow spawning on unwalkable tiles
-			if (featureAttemptTile.Node.IsWalkable && !featureAttemptTile.Feature)
-			{
-				TileFeature feature = Instantiate(chestPrefab, featureAttemptTile.transform.position + Vector3.up * 0.05f, Quaternion.Euler(90, 0, 0));
-				features.Add(feature);
-				featureAttemptTile.SetFeature(feature);
-				feature.transform.SetParent(featureContainer.transform);
-			}
+			if (featureAttemptTile.Node.IsWalkable && !featureAttemptTile.Feature) return;
+			SpawnFeature(chestPrefab, featureAttemptTile);
 		}
 	}
-
-	void SpawnFeatures(Vector2 count, TileFeature featurePrefab)
+	void SpawnFeatures(Vector2 chanceRange, TileFeature featurePrefab)
 	{
-		for (int i = 0; i < Random.Range(count.x, count.y); i++)
+		for (int i = 0; i < Random.Range(chanceRange.x, chanceRange.y); i++)
 		{
 			// 100 attempts per feature
 			int maxAttempts = 100;
@@ -197,16 +219,13 @@ public class World : MonoBehaviour
 			{
 				attempts++;
 				Vector2Int placePosition = new(Random.Range(0, WorldXSize), Random.Range(0, WorldYSize));
-				TileBase featureAttemptTile = worldTiles[placePosition.x, placePosition.y];
+				Tile featureAttemptTile = worldTiles[placePosition.x, placePosition.y];
+
 				// Disallow spawning on unwalkable tiles
-				if (featureAttemptTile.Node.IsWalkable && !featureAttemptTile.Feature)
-				{
-					TileFeature feature = Instantiate(featurePrefab, featureAttemptTile.transform.position + Vector3.up * 0.05f, Quaternion.Euler(90, 0, 0));
-					features.Add(feature);
-					featureAttemptTile.SetFeature(feature);
-					feature.transform.SetParent(featureContainer.transform);
-					break;
-				}
+				if (!featureAttemptTile.Node.IsWalkable || featureAttemptTile.Feature) continue;
+
+				SpawnFeature(featurePrefab, featureAttemptTile);
+				break;
 
 			} while (attempts < maxAttempts);
 		}
@@ -216,17 +235,23 @@ public class World : MonoBehaviour
 		if (Random.value < chance)
 		{
 			Vector2Int placePosition = new(Random.Range(0, WorldXSize), Random.Range(0, WorldYSize));
-			TileBase featureAttemptTile = worldTiles[placePosition.x, placePosition.y];
+			Tile featureAttemptTile = worldTiles[placePosition.x, placePosition.y];
+
 			// Disallow spawning on unwalkable tiles
-			if (featureAttemptTile.Node.IsWalkable && !featureAttemptTile.Feature)
-			{
-				TileFeature feature = Instantiate(featurePrefab, featureAttemptTile.transform.position + Vector3.up * 0.05f, Quaternion.Euler(90, 0, 0));
-				features.Add(feature);
-				featureAttemptTile.SetFeature(feature);
-				feature.transform.SetParent(featureContainer.transform);
-			}
+			if (!featureAttemptTile.Node.IsWalkable || featureAttemptTile.Feature) return;
+
+			SpawnFeature(featurePrefab, featureAttemptTile);
 		}
 	}
+	void SpawnFeature(TileFeature prefab, Tile tile)
+	{
+		TileFeature feature = Instantiate(prefab, tile.transform.position + Vector3.up * 0.05f, Quaternion.Euler(90, 0, 0));
+		features.Add(feature);
+		tile.SetFeature(feature);
+		feature.transform.SetParent(featureContainer.transform);
+	}
+
+	public void AddChestsToQueue(int count) => queuedChests += count;
 
 	/// <summary>
 	/// Returns a node based on x and y grid coordinates. Returns null if out of range
@@ -242,7 +267,7 @@ public class World : MonoBehaviour
 	/// <param name="x">The x coordinate</param>
 	/// <param name="y">The y coordinate</param>
 	/// <returns>The tile at x, y</returns>
-	public TileBase GetTile(int x, int y) => (x >= WorldXSize || x < 0 || y >= WorldYSize || y < 0) ? null : worldTiles[x, y];
+	public Tile GetTile(int x, int y) => (x >= WorldXSize || x < 0 || y >= WorldYSize || y < 0) ? null : worldTiles[x, y];
 
 	/// <summary>
 	/// Returns a node based on world position. Returns null if out of range
@@ -252,25 +277,19 @@ public class World : MonoBehaviour
 	/// <returns>The node at x, y</returns>
 	public Node GetNodeFromWorldPosition(Vector3 pos) => (pos.x >= WorldXSize || pos.x < 0 || pos.z >= WorldYSize || pos.z < 0) ? null : worldNodes[Mathf.FloorToInt(pos.x), Mathf.FloorToInt(pos.z)];
 
-	/// <summary>
-	/// Returns the adacent node in a direction of a given node
-	/// </summary>
-	/// <param name="sourceNode">The node to be checked</param>
-	/// <param name="direction">Which direction's node should be returned</param>
-	/// <returns></returns>
-	public Node GetAdjacentNode(Node sourceNode, Direction direction) => GetAdjacentNode(sourceNode, direction, worldNodes);
-	Node GetAdjacentNode(Node sourceNode, Direction direction, Node[,] allNodes)
+	Node GetAdjacentNode(Node sourceNode, Direction direction)
 	{
 		return direction switch
 		{
-			Direction.Left => sourceNode.XPos - 1 < 0 ? null : allNodes[sourceNode.XPos - 1, sourceNode.YPos],
-			Direction.Right => sourceNode.XPos + 1 >= WorldXSize ? null : allNodes[sourceNode.XPos + 1, sourceNode.YPos],
-			Direction.Up => sourceNode.YPos + 1 >= WorldYSize ? null : allNodes[sourceNode.XPos, sourceNode.YPos + 1],
-			Direction.Down => sourceNode.YPos - 1 < 0 ? null : allNodes[sourceNode.XPos, sourceNode.YPos - 1],
+			Direction.Left => sourceNode.XPos - 1 < 0 ? null : worldNodes[sourceNode.XPos - 1, sourceNode.YPos],
+			Direction.Right => sourceNode.XPos + 1 >= WorldXSize ? null : worldNodes[sourceNode.XPos + 1, sourceNode.YPos],
+			Direction.Up => sourceNode.YPos + 1 >= WorldYSize ? null : worldNodes[sourceNode.XPos, sourceNode.YPos + 1],
+			Direction.Down => sourceNode.YPos - 1 < 0 ? null : worldNodes[sourceNode.XPos, sourceNode.YPos - 1],
 			_ => null,
 		};
 	}
 
+	public void SetPlayer(UnitPlayer p) => player = p;
 	private void OnValidate()
 	{
 		if (enemiesToSpawn.y < enemiesToSpawn.x)

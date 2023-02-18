@@ -31,13 +31,17 @@ public abstract class Unit : MonoBehaviour
 	[SerializeField]
 	protected UnitUI unitUI;
 
-	private void Awake()
+	protected virtual void Awake()
 	{
 		anim = GetComponent<Animator>();
 		sprite = GetComponent<SpriteRenderer>();
 	}
 
-	public void SetLevel(int level) => Level = level;
+	public void SetLevelAndStats(int level)
+	{
+		Level = level;
+		AssignStats(level + 5);
+	}
 
 	/// <summary>
 	/// Attacks a given unit

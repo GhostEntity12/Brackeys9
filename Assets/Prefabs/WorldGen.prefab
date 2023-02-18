@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1158223072529884097
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1158223072529884102}
+  - component: {fileID: 1158223072529884103}
+  m_Layer: 0
+  m_Name: WorldGen
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1158223072529884102
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1158223072529884097}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 4
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1158223072529884103
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1158223072529884097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3bd89a8ac0559b408ec9a6e41e26282, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnableTilePrefabs:
+  - {fileID: 3227726310878408582, guid: e2e294d916526db498bc347ab9bd64b5, type: 3}
+  - {fileID: 5245998546689244056, guid: 4c04203c49ae0ae4fa5a3e7c2af4bc7e, type: 3}
+  - {fileID: 5068774315970314192, guid: 92ceb1d486f084a4087e5a2dbb23819d, type: 3}
+  - {fileID: 7482361501915727513, guid: 74839c9a2253fa3438ec7d995740b14a, type: 3}
+  - {fileID: 907920418063936992, guid: 336441df382861f4494b4fafa4a74d5a, type: 3}
+  - {fileID: 970146442034545178, guid: a9a764c5dfce898459d33bb369172296, type: 3}
+  - {fileID: 4585525906339089667, guid: b7a4ad15d4a18f148859d5d408108eb4, type: 3}
+  - {fileID: 2405922585212284648, guid: 9593f64a639780a4699d1d9d5ef31f73, type: 3}
+  - {fileID: 4797441611623273328, guid: 10494d1c1023ad743b94b7670bb95862, type: 3}
+  spawnProbabilities:
+  - 0.085
+  - 0.13
+  - 0.11
+  - 0.04
+  - 0.23
+  - 0.13
+  - 0.1
+  - 0.05
+  - 0.125
+  enemyPrefab: {fileID: 2041726874925853287, guid: 55c0cd3100f282f4f9695b3644b63a36,
+    type: 3}
+  chestPrefab: {fileID: 2368857110473859376, guid: f4a388e21539e5d40a8e2879bee6a25e,
+    type: 3}
+  farmPrefab: {fileID: 6943638718711333916, guid: 08872fd8a2472094e9479d987248de26,
+    type: 3}
+  townPrefab: {fileID: -8607063838984923047, guid: d512499d73b8b024cb1c550fcd3c2209,
+    type: 3}
+  altarBlessedPrefab: {fileID: -458186691216383753, guid: 2ce7165531abcd34a9fb589bd5efb971,
+    type: 3}
+  altarCursedPrefab: {fileID: -634602142742093403, guid: bf07a1f9b31595d4e95c70dd5fc5904b,
+    type: 3}
+  enemiesToSpawn: {x: 4, y: 6}
+  townsToSpawn: {x: 0, y: 2}
+  farmsToSpawn: {x: 2, y: 5}
+  chestSpawnChance: 0.4
+  altarBlessedSpawnChance: 0.4
+  altarCursedSpawnChance: 0.4
