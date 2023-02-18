@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using TMPro;
 using UnityEngine;
 
@@ -17,12 +16,24 @@ public class GameManager : Singleton<GameManager>
 	LineRenderer pathRenderer;
 	[SerializeField]
 	TextMeshPro pathCostText;
-	Node cacheNode;
+	//Node cacheNode;
 	UnitEnemy hoveredEnemy = null;
 
-	Stack<Node> path = new();
+	Node[] path;
 
 	bool gameOver;
+	[field: SerializeField]
+	public DoomsdayClock Clock { get; private set; }
+
+	public bool EndlessMode { get; private set; }
+
+	SaveData save;
+
+	private void Start()
+	{
+		save = ReadWrite.Read();
+		World.Generate();
+	}
 
 	// Update is called once per frame
 	void Update()
@@ -34,13 +45,13 @@ public class GameManager : Singleton<GameManager>
 			{
 				if (Input.GetMouseButtonDown(0))
 				{
-					player.SetPath(path);
+					player.SetPath(new(path.Reverse()));
 					player.SetTargetedEnemy(hoveredEnemy);
-					cacheNode = null;
+					//cacheNode = null;
 				}
 
-				if (cacheNode == tile.Node) return;
-				cacheNode = tile.Node;
+				//if (cacheNode == tile.Node) return;
+				//cacheNode = tile.Node;
 
 				// Check if hit enemy
 				if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitEnemy, 20, 1 << 7) &&
@@ -70,8 +81,8 @@ public class GameManager : Singleton<GameManager>
 					}
 					if (lowestCostPath == null) return;
 
-					path = lowestCostPath;
-					DisplayPath(path.ToArray());
+					path = lowestCostPath.ToArray();
+					DisplayPath(path);
 					hoveredEnemy = enemy;
 				}
 				else
@@ -79,8 +90,8 @@ public class GameManager : Singleton<GameManager>
 					player.SetTargetedEnemy(null);
 					Stack<Node> attemptedPath = Pathfinding.Pathfind(player.DestinationNode, tile.Node);
 					if (attemptedPath == null) return;
-					path = attemptedPath;
-					DisplayPath(path.ToArray());
+					path = attemptedPath.ToArray();
+					DisplayPath(path);
 				}
 			}
 		}
@@ -94,19 +105,8 @@ public class GameManager : Singleton<GameManager>
 		pathRenderer.positionCount = positions.Length;
 		pathRenderer.SetPositions(positions);
 
-		int cost = GetPathCost(path);
-		if (cost > 0)
-		{
-			pathCostText.text = cost.ToString();
-			int middle = positions.Length / 2;
-			pathCostText.transform.position = (positions.Length % 2 == 1 ? positions[middle] : (positions[middle] + positions[middle - 1]) / 2) + Vector3.up * 0.1f;
-		}
-		else
-		{
-			pathCostText.text = string.Empty;
-		}
-
 		pathRenderer.Simplify(0.1f);
+		Clock.ShowPreview(GetPathCost(path));
 	}
 
 	int GetPathCost(Node[] path)
@@ -118,6 +118,25 @@ public class GameManager : Singleton<GameManager>
 			cost += node.MovementCost;
 		}
 		return cost;
+	}
+
+	public void GenerateNewWorld()
+	{
+		Debug.Log("Make a new one");
+		World.Destroy();
+		World.Generate();
+	}
+
+	public void Victory()
+	{
+		gameOver = true;
+		save.endlessModeUnlocked = true;
+		if (save.bestScore > World.Generations)
+		{
+			save.bestScore = World.Generations;
+		}
+			
+		_ = ReadWrite.Write(save);
 	}
 
 	public void GameOver()
