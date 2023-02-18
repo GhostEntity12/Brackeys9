@@ -3,6 +3,9 @@ using UnityEngine;
 
 public class UnitPlayer : Unit
 {
+	LevelManager levelManager;
+	DoomsdayClock clock;
+
 	const float LevelCurveStrength = 1.6f;
 	const float TargetLevel = 10;
 
@@ -48,6 +51,14 @@ public class UnitPlayer : Unit
 		}
 	}
 
+	protected override void Awake()
+	{
+		base.Awake();
+		levelManager = FindObjectOfType<LevelManager>();
+		clock = FindObjectOfType<DoomsdayClock>();
+		anim = GetComponent<Animator>();
+	}
+
 	// Start is called before the first frame update
 	void Start()
 	{
@@ -73,7 +84,7 @@ public class UnitPlayer : Unit
 		healthDisplay.UpdateHearts(Health, MaxHealth);
 		statsDisplay.UpdateStats(this);
 
-		DestinationNode = GameManager.Instance.World.GetNodeFromWorldPosition(transform.position);
+		DestinationNode = levelManager.World.GetNodeFromWorldPosition(transform.position);
 		currentWaypoint = new(DestinationNode.XPos + 0.5f, yOffset, DestinationNode.YPos + 0.5f);
 		transform.position = transform.position + Vector3.up * yOffset;
 	}
@@ -82,8 +93,20 @@ public class UnitPlayer : Unit
 	void Update()
 	{
 		anim.SetBool("isMoving", IsMoving);
-		if (Vector3.Distance(transform.position, currentWaypoint) < allowedError)
+		if (Vector3.Distance(transform.position, currentWaypoint) >= allowedError)
 		{
+			transform.position = Vector3.MoveTowards(transform.position, currentWaypoint, speed * Time.deltaTime);
+			sprite.flipX = currentWaypoint.x < transform.position.x || currentWaypoint.x <= transform.position.x && sprite.flipX;
+		}
+		else
+		{
+			if (clock.CheckRegenerate())
+			{
+				path.Clear();
+				DestinationNode = levelManager.World.GetNodeFromWorldPosition(transform.position);
+				currentWaypoint = new(DestinationNode.XPos + 0.5f, yOffset, DestinationNode.YPos + 0.5f);
+			}
+
 			if (path.Count > 0)
 			{
 				SetNextWaypoint();
@@ -92,7 +115,7 @@ public class UnitPlayer : Unit
 			{
 				IsMoving = false;
 				// Activate tile related events (including stat changes)
-				TileBase destinationTile = GameManager.Instance.World.GetTile(DestinationNode.XPos, DestinationNode.YPos);
+				Tile destinationTile = levelManager.World.GetTile(DestinationNode.XPos, DestinationNode.YPos);
 				OffenceModifier = destinationTile.OffenceModifier;
 				DefenceModifier = destinationTile.DefenceModifier;
 				if (destinationTile.Feature)
@@ -109,14 +132,7 @@ public class UnitPlayer : Unit
 					anim.SetTrigger("attack");
 					queueAttack = true;
 				}
-				return;
 			}
-		}
-		else
-		{
-			transform.position = Vector3.MoveTowards(transform.position, currentWaypoint, speed * Time.deltaTime);
-			sprite.flipX = currentWaypoint.x < transform.position.x || currentWaypoint.x <= transform.position.x && sprite.flipX;
-
 		}
 	}
 
@@ -133,8 +149,11 @@ public class UnitPlayer : Unit
 		unitUI.UpdateText(this);
 		if (newPath == null)
 		{
-			Debug.LogError("Setting Null path!");
 			return;
+		}
+		if (newPath.Count > 1)
+		{
+			newPath.Pop();
 		}
 		path = newPath;
 		// Save final node
@@ -147,12 +166,7 @@ public class UnitPlayer : Unit
 		Node newNode = path.Pop();
 		currentWaypoint = new(newNode.XPos + 0.5f, yOffset, newNode.YPos + 0.5f);
 		IsMoving = true;
-		if (GameManager.Instance.Clock.Consume(newNode.MovementCost))
-		{
-			path.Clear();
-			DestinationNode = GameManager.Instance.World.GetNodeFromWorldPosition(transform.position);
-			currentWaypoint = new(DestinationNode.XPos + 0.5f, yOffset, DestinationNode.YPos + 0.5f);
-		}
+		clock.Consume(newNode.MovementCost);
 	}
 
 	public void SetTargetedEnemy(UnitEnemy enemy) => targetedEnemy = enemy;
@@ -163,11 +177,9 @@ public class UnitPlayer : Unit
 	/// <param name="xpToGain">The amount of xp for the player to gain</param>
 	public void GainXP(int xpToGain)
 	{
-		Debug.Log("Gained XP!");
 		int newXp = xp + xpToGain;
 		if (newXp > XpToNextLevel)
 		{
-			Debug.Log("Levelled up!");
 			xp = newXp - XpToNextLevel;
 			LevelUp();
 		}
@@ -188,10 +200,10 @@ public class UnitPlayer : Unit
 		healthDisplay.UpdateHearts(Health, MaxHealth);
 		unitUI.UpdateText(this);
 		xpDisplay.UpdateLevelText(Level);
-		GameManager.Instance.World.AddChestsToQueue(Random.value < 0.5f ? 1 : 2);
-		if (Level >= 10 && !GameManager.Instance.EndlessMode)
+		levelManager.World.AddChestsToQueue(Random.value < 0.5f ? 1 : 2);
+		if (Level >= 10 && !levelManager.InEndlessMode)
 		{
-			GameManager.Instance.Victory();
+			levelManager.Victory();
 		}
 	}
 
@@ -244,6 +256,13 @@ public class UnitPlayer : Unit
 		// GameOver;
 		// Bring up lose screen
 		anim.SetTrigger("death");
-		GameManager.Instance.GameOver();
+		levelManager.GameOver();
+	}
+
+	public void SetDisplays(HealthDisplay hd, StatsDisplay sd, XPDisplay xd)
+	{
+		healthDisplay = hd;
+		statsDisplay = sd;
+		xpDisplay = xd;
 	}
 }
