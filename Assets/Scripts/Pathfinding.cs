@@ -18,7 +18,6 @@ public static class Pathfinding
 		// Return if destination is not visitable (TODO: nav to closest tile?)
 		if (!destination.IsWalkable)
 		{
-			//Debug.LogWarning("End tile unwalkable");
 			return null;
 		}
 
@@ -82,12 +81,23 @@ public static class Pathfinding
 		else
 		{
 			// At this point, run a greedy best first search and re-run Pathfind() to the lowest?
-			//Debug.LogWarning("No Path Found");
 			return null;
 		}
 	}
 
 	static int GetDistance(Node a, Node b) => Mathf.Abs(a.XPos - b.XPos) + Mathf.Abs(a.YPos - b.YPos);
+
+	public static int GetCost(Stack<Node> path)
+	{
+		Node[] pathArray = path.ToArray();
+		int cost = 0;
+		for (int i = 1; i < pathArray.Length; i++)
+		{
+			Node node = pathArray[i];
+			cost += node.MovementCost;
+		}
+		return cost;
+	}
 }
 
 [System.Serializable]

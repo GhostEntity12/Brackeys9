@@ -3,6 +3,7 @@ using UnityEngine.UI;
 
 public class DoomsdayClock : MonoBehaviour
 {
+	LevelManager levelManager;
 
 	[field: SerializeField]
 	public int Actions { get; private set; }
@@ -14,27 +15,32 @@ public class DoomsdayClock : MonoBehaviour
 
 	float remaining = 1;
 
-	public void ShowPreview(int cost)
+	public bool HasTimeRemaining => remaining > 0.001;
+
+	private void Awake()
 	{
-		actualBar.fillAmount = remaining - ((float)cost / Actions);
+		levelManager = FindObjectOfType<LevelManager>();
 	}
 
-	public bool Consume(int amount)
+	public void ShowPreview(int cost) => actualBar.fillAmount = remaining - ((float)cost / Actions);
+
+	public void Consume(int amount)
 	{
 		remaining = Mathf.Max(0, remaining - ((float)amount / Actions));
 		actualBar.fillAmount = remaining;
 		previewBar.fillAmount = remaining;
-
-		if (remaining == 0)
-		{
-			GameManager.Instance.GenerateNewWorld();
-			ResetBar();
-			return true;
-		}
-		return false;
 	}
 
-	public void ResetBar()
+	public bool CheckRegenerate()
+	{
+		if (remaining >= 0.001) return false;
+
+		ResetValues();
+		levelManager.World.Regenerate();
+		return true;
+	}
+
+	public void ResetValues()
 	{
 		remaining = 1;
 		actualBar.fillAmount = remaining;

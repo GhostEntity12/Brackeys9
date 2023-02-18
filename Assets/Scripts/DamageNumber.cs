@@ -3,24 +3,24 @@ using UnityEngine;
 
 public class DamageNumber : MonoBehaviour
 {
-	TextMeshPro damageNumber;
-	Rigidbody damageNumberRb;
+	TextMeshPro text;
+	Rigidbody rb;
 
 	float clock = 0;
 	bool active = false;
 
 	private void Awake()
 	{
-		damageNumberRb = GetComponent<Rigidbody>();
-		damageNumber = damageNumberRb.GetComponent<TextMeshPro>();
+		rb = GetComponent<Rigidbody>();
+		text = GetComponent<TextMeshPro>();
 	}
 
 	public void Trigger(int damageAmount)
 	{
-		ResetDamageNumber();
-		damageNumber.text = damageAmount.ToString();
-		damageNumberRb.useGravity = true;
-		damageNumberRb.AddForceAtPosition(new(0.3f * (Random.value > 0.5f ? 1 : -1), 1f, 0f), damageNumberRb.transform.position, ForceMode.Impulse);
+		ResetValues();
+		text.text = damageAmount.ToString();
+		rb.useGravity = true;
+		rb.AddForceAtPosition(new(0.3f * (Random.value > 0.5f ? 1 : -1), 1f, 0f), rb.transform.position, ForceMode.Impulse);
 		active = true;
 	}
 
@@ -33,15 +33,15 @@ public class DamageNumber : MonoBehaviour
 		{
 			clock = 0;
 			active = false;
-			ResetDamageNumber();
+			ResetValues();
 		}
 	}
 
-	void ResetDamageNumber()
+	void ResetValues()
 	{
-		damageNumber.text = string.Empty;
-		damageNumber.transform.localPosition = Vector3.zero;
-		damageNumberRb.velocity = Vector3.zero;
-		damageNumberRb.useGravity = false;
+		text.text = string.Empty;
+		text.transform.localPosition = Vector3.zero;
+		rb.velocity = Vector3.zero;
+		rb.useGravity = false;
 	}
 }
