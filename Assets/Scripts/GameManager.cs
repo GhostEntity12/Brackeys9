@@ -24,6 +24,8 @@ public class GameManager : Singleton<GameManager>
 	bool gameOver;
 	[field: SerializeField]
 	public DoomsdayClock Clock { get; private set; }
+	
+	public bool EndlessMode { get; private set; }
 
 	private void Start()
 	{
@@ -120,6 +122,11 @@ public class GameManager : Singleton<GameManager>
 		Debug.Log("Make a new one");
 		World.Destroy();
 		World.Generate();
+	}
+
+	public void Victory()
+	{
+		gameOver = true;
 	}
 
 	public void GameOver()

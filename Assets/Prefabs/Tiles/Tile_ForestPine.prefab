@@ -121,5 +121,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   <IsWalkable>k__BackingField: 1
   <MovementCost>k__BackingField: 1
-  <OffenceModifier>k__BackingField: 0
+  <OffenceModifier>k__BackingField: 2
   <DefenceModifier>k__BackingField: 0

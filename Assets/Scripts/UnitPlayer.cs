@@ -170,8 +170,6 @@ public class UnitPlayer : Unit
 			Debug.Log("Levelled up!");
 			xp = newXp - XpToNextLevel;
 			LevelUp();
-			xpDisplay.UpdateLevelText(Level);
-			GameManager.Instance.World.AddChestsToQueue(Random.value < 0.5f ? 1 : 2);
 		}
 		else
 		{
@@ -189,6 +187,12 @@ public class UnitPlayer : Unit
 		Level++;
 		healthDisplay.UpdateHearts(Health, MaxHealth);
 		unitUI.UpdateText(this);
+		xpDisplay.UpdateLevelText(Level);
+		GameManager.Instance.World.AddChestsToQueue(Random.value < 0.5f ? 1 : 2);
+		if (Level > 10 && !GameManager.Instance.EndlessMode)
+		{
+			GameManager.Instance.Victory();
+		}
 	}
 
 	/// <summary>
