@@ -45,6 +45,8 @@ public class LevelManager : MonoBehaviour
 	bool gameEnded;
 	public bool InEndlessMode { get; private set; }
 
+	public bool AllowInput { get; private set; }
+
 
 	private void Awake()
 	{
@@ -54,18 +56,20 @@ public class LevelManager : MonoBehaviour
 		player = Instantiate(playerPrefab);
 
 		World.SetPlayer(player);
+		World.SetLevelManager(this);
 		player.SetDisplays(Instantiate(healthDisplayPrefab), Instantiate(statsDisplayPrefab), Instantiate(xpDisplayPrefab));
+		LeanTween.delayedCall(0.5f, () => AllowInput = true);
 	}
 
 	private void Start()
 	{
-		World.Regenerate();
+		World.Generate();
 	}
 
 	// Update is called once per frame
 	void Update()
 	{
-		if (gameEnded || player.IsMoving) return;
+		if (!AllowInput || gameEnded || player.IsMoving) return;
 
 		// On tile hover
 		if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hitTile, 20, 1 << 6) &&
@@ -146,6 +150,9 @@ public class LevelManager : MonoBehaviour
 		}
 
 		_ = ReadWrite.Write(GameManager.Instance.Save);
+
+		LeanTween.scale(victory.Stamp, Vector3.one, 0.75f).setEaseInQuint().setDelay(0.6f);
+		LeanTween.alpha(victory.Stamp, 1, 0.75f).setEaseInQuint().setDelay(0.6f);
 	}
 
 	public void GameOver()
@@ -172,11 +179,15 @@ public class LevelManager : MonoBehaviour
 		}
 		else
 		{
-			Debug.Log("yay");
 			defeat.ScoreText.text = $"You survived {World.Generations} worlds\r\n and made it to Level {player.Level}";
 			defeat.HighscoreText.text = $"Previous best:\n  {GameManager.Instance.Save.bestScoreNormalGeneration} worlds";
 		}
+
+		LeanTween.scale(defeat.Stamp, Vector3.one, 0.75f).setEaseInQuint().setDelay(0.6f);
+		LeanTween.alpha(defeat.Stamp, 1, 0.75f).setEaseInQuint().setDelay(0.6f);
 	}
+
+	public void ToggleAllowInput(bool allow) => AllowInput = allow;
 }
 
 [Serializable]
@@ -188,4 +199,6 @@ public class EndScreen
 	public TextMeshProUGUI ScoreText { get; private set; }
 	[field: SerializeField]
 	public TextMeshProUGUI HighscoreText { get; private set; }
+	[field: SerializeField]
+	public RectTransform Stamp { get; private set; }
 }

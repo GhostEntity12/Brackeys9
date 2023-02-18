@@ -4,6 +4,7 @@ using UnityEngine;
 public class World : MonoBehaviour
 {
 	UnitPlayer player;
+	LevelManager levelManager;
 
 	// NOTE: Nodes are traversal objects, tiles are GameObjects
 	public enum Direction { Left, Right, Up, Down }
@@ -74,13 +75,13 @@ public class World : MonoBehaviour
 	public void Regenerate()
 	{
 		Destroy();
-		Generate();
+		LeanTween.delayedCall(1.4f, Generate);
 	}
 
 	/// <summary>
 	/// Generates a new world
 	/// </summary>
-	void Generate()
+	public void Generate()
 	{
 		Generations++;
 
@@ -89,6 +90,7 @@ public class World : MonoBehaviour
 		worldTiles = new Tile[WorldXSize, WorldYSize];
 
 		// Spawning tiles
+		Destroy(world);
 		world = new("World");
 		for (int y = 0; y < WorldYSize; y++)
 		{
@@ -105,6 +107,7 @@ public class World : MonoBehaviour
 				// Saving to arrays
 				worldNodes[x, y] = t.Node;
 				worldTiles[x, y] = t;
+				t.SpawnTile(Random.value / 3f);
 			}
 		}
 		// Setting neighbours
@@ -126,6 +129,9 @@ public class World : MonoBehaviour
 		SpawnFeatures(townsToSpawn, townPrefab);
 		SpawnFeatures(altarBlessedSpawnChance, altarBlessedPrefab);
 		SpawnFeatures(altarCursedSpawnChance, altarCursedPrefab);
+
+		LeanTween.delayedCall(0.5f, () => player.ResetNode());
+		LeanTween.delayedCall(0.5f, () => levelManager.ToggleAllowInput(true));
 	}
 
 	/// <summary>
@@ -133,10 +139,17 @@ public class World : MonoBehaviour
 	/// </summary>
 	public void Destroy()
 	{
+		levelManager.ToggleAllowInput(false);
 		enemies.Clear();
 		features.Clear();
 
-		Destroy(world);
+		for (int y = 0; y < WorldYSize; y++)
+		{
+			for (int x = 0; x < WorldXSize; x++)
+			{
+				worldTiles[x, y].DestroyTile(Random.value);
+			}
+		}
 		Destroy(enemyContainer);
 		Destroy(featureContainer);
 	}
@@ -204,7 +217,7 @@ public class World : MonoBehaviour
 			Vector2Int placePosition = new(Random.Range(0, WorldXSize), Random.Range(0, WorldYSize));
 			Tile featureAttemptTile = worldTiles[placePosition.x, placePosition.y];
 			// Disallow spawning on unwalkable tiles
-			if (featureAttemptTile.Node.IsWalkable && !featureAttemptTile.Feature) return;
+			if (!featureAttemptTile.Node.IsWalkable || featureAttemptTile.Feature) return;
 			SpawnFeature(chestPrefab, featureAttemptTile);
 		}
 	}
@@ -290,6 +303,7 @@ public class World : MonoBehaviour
 	}
 
 	public void SetPlayer(UnitPlayer p) => player = p;
+	public void SetLevelManager(LevelManager lm) => levelManager = lm;
 	private void OnValidate()
 	{
 		if (enemiesToSpawn.y < enemiesToSpawn.x)
