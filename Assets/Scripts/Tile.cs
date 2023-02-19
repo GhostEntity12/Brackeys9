@@ -18,4 +18,13 @@ public class Tile : MonoBehaviour
 	public TileFeature Feature { get; protected set; }
 
 	public void SetFeature(TileFeature feature) => Feature = feature;
+
+	public void DestroyTile(float delay)
+	{
+		LeanTween.scale(gameObject, Vector3.zero, 0.3f).setDelay(delay).setEase(LeanTweenType.easeInBack).setDestroyOnComplete(true);
+	}
+	public void SpawnTile(float delay)
+	{
+		LeanTween.scale(gameObject, Vector3.one, 0.3f).setDelay(delay).setEase(LeanTweenType.easeOutBack);
+	}
 }

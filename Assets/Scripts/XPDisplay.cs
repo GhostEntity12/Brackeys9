@@ -10,5 +10,5 @@ public class XPDisplay : MonoBehaviour
 	TextMeshProUGUI levelText;
 	public void UpdateXP(float amount) => fill.fillAmount = amount;
 
-	public void UpdateLevelText(int newLevel) => levelText.text = $"Level {newLevel}";
+	public void UpdateLevelText(int newLevel) => levelText.text = $"{newLevel}";
 }

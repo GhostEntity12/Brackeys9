@@ -16,9 +16,11 @@ public class HealthDisplay : MonoBehaviour
 	[SerializeField]
 	Sprite heartEmptySprite;
 
+	const int MaxHearts = 11;
+
 	public void UpdateHearts(int health, int maxHealth)
 	{
-		while (hearts.Count < maxHealth)
+		while (container.childCount < maxHealth && container.childCount <= MaxHearts)
 		{
 			SpawnNewHeart();
 		}
@@ -32,12 +34,12 @@ public class HealthDisplay : MonoBehaviour
 	{
 		switch (hearts.Count)
 		{
-			case < 12:
+			case < MaxHearts:
 				Image h = Instantiate(heartPrefab, container);
 				h.rectTransform.localRotation = Quaternion.Euler(0, 0, Random.Range(-20f, 20f));
 				hearts.Add(h);
 				break;
-			case 12:
+			case MaxHearts:
 				Instantiate(plusPrefab, container);
 				break;
 			default:
