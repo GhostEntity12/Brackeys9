@@ -9,6 +9,8 @@ using UnityEngine.SceneManagement;
 
 public class LevelManager : MonoBehaviour
 {
+	CanvasGroup sceneFade;
+
 	[Header("Audio")]
 	[SerializeField]
 	AudioSource source;
@@ -79,6 +81,7 @@ public class LevelManager : MonoBehaviour
 	private void Start()
 	{
 		World.Generate();
+		LeanTween.alphaCanvas(sceneFade, 0, 1);
 	}
 
 	// Update is called once per frame
@@ -220,12 +223,12 @@ public class LevelManager : MonoBehaviour
 
 	public void ToggleAllowInput(bool allow) => AllowInput = allow;
 
-	public void ReloadLevel() => SceneManager.LoadScene(1);
-	public void LoadMenu() => SceneManager.LoadScene(0);
+	public void ReloadLevel() => LeanTween.alphaCanvas(sceneFade, 1, 1).setOnComplete(() => SceneManager.LoadScene(1));
+	public void LoadMenu() => LeanTween.alphaCanvas(sceneFade, 1, 1).setOnComplete(() => SceneManager.LoadScene(0));
 	public void LoadEndless()
 	{
 		SceneLoadTypeData.GetInstance().loadType = SceneLoadTypeData.LoadType.Endless;
-		SceneManager.LoadScene(1);
+		LeanTween.alphaCanvas(sceneFade, 1, 1).setOnComplete(() => SceneManager.LoadScene(1));
 	}
 }
 
