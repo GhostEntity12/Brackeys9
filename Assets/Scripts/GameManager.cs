@@ -11,5 +11,6 @@ public class GameManager : Singleton<GameManager>
 	private void Start()
 	{
 		Save = ReadWrite.Read();
+		SceneLoadTypeData.Create();
 	}
 }

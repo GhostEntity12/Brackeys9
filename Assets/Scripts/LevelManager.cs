@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using TMPro;
+using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class LevelManager : MonoBehaviour
 {
@@ -59,6 +61,14 @@ public class LevelManager : MonoBehaviour
 		World.SetLevelManager(this);
 		player.SetDisplays(Instantiate(healthDisplayPrefab), Instantiate(statsDisplayPrefab), Instantiate(xpDisplayPrefab));
 		LeanTween.delayedCall(0.5f, () => AllowInput = true);
+
+
+		if (SceneLoadTypeData.GetInstance() == null)
+		{
+			SceneLoadTypeData.Create();
+			SceneLoadTypeData.GetInstance().loadType = SceneLoadTypeData.LoadType.Endless;
+		}
+		InEndlessMode = SceneLoadTypeData.GetInstance().loadType == SceneLoadTypeData.LoadType.Endless;
 	}
 
 	private void Start()
@@ -134,11 +144,19 @@ public class LevelManager : MonoBehaviour
 		GameManager.Instance.Save.endlessModeUnlocked = true;
 
 		victory.CanvasGroup.alpha = 1;
+		victory.CanvasGroup.interactable = true;
+		victory.CanvasGroup.blocksRaycasts = true;
+		defeat.CanvasGroup.interactable = false;
+		defeat.CanvasGroup.blocksRaycasts = false;
 
 		LeanTween.alphaCanvas(bgFade, 1, 0.5f);
 		LeanTween.moveY(endScreenContainer, 0, 0.5f).setEaseOutBack();
 
 		victory.ScoreText.text = $"You beat Sketchbook Quest in\r\n {World.Generations} worlds!";
+		if (GameManager.Instance.Save.bestScoreNormalGeneration == 0)
+		{
+			GameManager.Instance.Save.bestScoreNormalGeneration = World.Generations + 1;
+		}
 		if (World.Generations >= GameManager.Instance.Save.bestScoreNormalGeneration)
 		{
 			victory.HighscoreText.text = $"Previous best:\n  {GameManager.Instance.Save.bestScoreNormalGeneration} worlds";
@@ -160,6 +178,10 @@ public class LevelManager : MonoBehaviour
 		gameEnded = true;
 
 		defeat.CanvasGroup.alpha = 1;
+		defeat.CanvasGroup.interactable = true;
+		defeat.CanvasGroup.blocksRaycasts= true;
+		victory.CanvasGroup.interactable = false;
+		victory.CanvasGroup.blocksRaycasts= false;
 
 		LeanTween.alphaCanvas(bgFade, 1, 0.5f);
 		LeanTween.moveY(endScreenContainer, 0, 0.5f).setEaseOutBack();
@@ -188,6 +210,14 @@ public class LevelManager : MonoBehaviour
 	}
 
 	public void ToggleAllowInput(bool allow) => AllowInput = allow;
+
+	public void ReloadLevel() => SceneManager.LoadScene(1);
+	public void LoadMenu() => SceneManager.LoadScene(0);
+	public void LoadEndless()
+	{
+		SceneLoadTypeData.GetInstance().loadType = SceneLoadTypeData.LoadType.Endless;
+		SceneManager.LoadScene(1);
+	}
 }
 
 [Serializable]
