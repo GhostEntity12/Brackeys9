@@ -110,7 +110,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1922681360422069443}
   m_LocalRotation: {x: 0.7062228, y: 0.035325278, z: -0.035325218, w: 0.70622504}
-  m_LocalPosition: {x: -3.77, y: 0.040000007, z: 8.52}
+  m_LocalPosition: {x: -3.77, y: 0.040000007, z: 8.3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -188,7 +188,8 @@ MonoBehaviour:
   container: {fileID: 1922681361329537735}
   heartPrefab: {fileID: 5440393193139430383, guid: 97dc6ae1df94b674db33e451055a1715,
     type: 3}
-  plusPrefab: {fileID: 0}
+  plusPrefab: {fileID: 5440393193139430383, guid: edc84fb49b7a3d54aba3715c23c95da5,
+    type: 3}
   heartFullSprite: {fileID: 21300000, guid: 1e2728a9aad1fb94a8b6173ffd28fa05, type: 3}
   heartEmptySprite: {fileID: 21300000, guid: adee832ed218170478ad890b03a28cdf, type: 3}
 --- !u!1 &1922681360585674063

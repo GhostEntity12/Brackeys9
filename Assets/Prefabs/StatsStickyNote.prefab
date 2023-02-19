@@ -66,10 +66,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u2013 1+2"
+  m_text: "\u2013 1-2"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 07dede1654c09714a9396b6518311254, type: 2}
+  m_sharedMaterial: {fileID: 9000584209314820232, guid: 07dede1654c09714a9396b6518311254,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -408,7 +409,7 @@ Transform:
   - {fileID: 8368627958848543279}
   - {fileID: 8368627960124609791}
   m_Father: {fileID: 0}
-  m_RootOrder: -1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 9.134}
 --- !u!212 &8368627958828665693
 SpriteRenderer:
@@ -892,8 +893,9 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u2013 1<color=green>+2"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 07dede1654c09714a9396b6518311254, type: 2}
+  m_sharedMaterial: {fileID: 9000584209314820232, guid: 07dede1654c09714a9396b6518311254,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

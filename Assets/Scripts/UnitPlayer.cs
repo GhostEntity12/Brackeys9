@@ -92,6 +92,7 @@ public class UnitPlayer : Unit
 	// Update is called once per frame
 	void Update()
 	{
+		if (!levelManager.AllowInput) return;
 		anim.SetBool("isMoving", IsMoving);
 		if (Vector3.Distance(transform.position, currentWaypoint) >= allowedError)
 		{
@@ -264,5 +265,10 @@ public class UnitPlayer : Unit
 		healthDisplay = hd;
 		statsDisplay = sd;
 		xpDisplay = xd;
+	}
+
+	public void ResetNode()
+	{
+		DestinationNode = levelManager.World.GetNodeFromWorldPosition(transform.position);
 	}
 }
