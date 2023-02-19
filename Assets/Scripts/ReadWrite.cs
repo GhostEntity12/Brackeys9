@@ -29,6 +29,6 @@ public static class ReadWrite
 public class SaveData
 {
 	public bool endlessModeUnlocked;
-	internal int bestScoreEndlessLevel;
-	internal int bestScoreNormalGeneration;
+	public int bestScoreEndlessLevel;
+	public int bestScoreNormalGeneration;
 }

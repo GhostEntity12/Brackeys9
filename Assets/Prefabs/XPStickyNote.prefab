@@ -453,6 +453,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fill: {fileID: 8960966681084161167}
   levelText: {fileID: 8960966682067387335}
+  goal: {fileID: 8960966680989388770}
 --- !u!1 &8960966682067387333
 GameObject:
   m_ObjectHideFlags: 0

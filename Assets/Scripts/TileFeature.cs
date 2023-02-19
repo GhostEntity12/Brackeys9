@@ -8,11 +8,16 @@ public abstract class TileFeature : MonoBehaviour
 	[SerializeField]
 	Sprite inactiveSprite;
 	bool triggered;
+	[SerializeField]
+	AudioSource audioSource;
+	[SerializeField]
+	AudioClip clip;
 
 	private void Awake()
 	{
 		renderer = GetComponent<SpriteRenderer>();
 		renderer.sprite = activeSprite;
+		audioSource = GetComponent<AudioSource>();
 		LeanTween.scale(gameObject, Vector3.one, 0.3f).setEaseOutCubic().setDelay(0.6f);
 		LeanTween.value(gameObject, SetAlpha, 0, 1, 0.3f).setEaseOutCubic().setDelay(0.6f);
 	}
@@ -21,6 +26,7 @@ public abstract class TileFeature : MonoBehaviour
 		if (triggered) return false;
 		triggered = true;
 		renderer.sprite = inactiveSprite;
+		audioSource.PlayOneShot(clip);
 		return true;
 	}
 

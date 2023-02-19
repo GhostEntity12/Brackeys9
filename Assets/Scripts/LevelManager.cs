@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 
 public class LevelManager : MonoBehaviour
 {
+	[SerializeField]
 	CanvasGroup sceneFade;
 
 	[Header("Audio")]
@@ -74,14 +75,13 @@ public class LevelManager : MonoBehaviour
 		if (SceneLoadTypeData.GetInstance() == null)
 		{
 			SceneLoadTypeData.Create();
-			SceneLoadTypeData.GetInstance().loadType = SceneLoadTypeData.LoadType.Endless;
 		}
 	}
 
 	private void Start()
 	{
-		World.Generate();
 		LeanTween.alphaCanvas(sceneFade, 0, 1);
+		World.Generate();
 	}
 
 	// Update is called once per frame
@@ -150,6 +150,11 @@ public class LevelManager : MonoBehaviour
 
 	public void Victory()
 	{
+		GameManager.Instance.AudioSource.Pause();
+		GameManager.Instance.AudioSource.volume = 0;
+		LeanTween.delayedCall(3.5f, GameManager.Instance.AudioSource.UnPause);
+		LeanTween.value(GameManager.Instance.gameObject, GameManager.Instance.LerpAudio, 0, 1, 0.3f);
+
 		gameEnded = true;
 		GameManager.Instance.Save.endlessModeUnlocked = true;
 
@@ -187,6 +192,11 @@ public class LevelManager : MonoBehaviour
 
 	public void GameOver()
 	{
+		GameManager.Instance.AudioSource.Pause();
+		GameManager.Instance.AudioSource.volume = 0;
+		LeanTween.delayedCall(3.5f, GameManager.Instance.AudioSource.UnPause);
+		LeanTween.value(GameManager.Instance.gameObject, GameManager.Instance.LerpAudio, 0, 1, 0.3f);
+
 		gameEnded = true;
 
 		defeat.CanvasGroup.alpha = 1;
@@ -216,9 +226,10 @@ public class LevelManager : MonoBehaviour
 			defeat.ScoreText.text = $"You survived {World.Generations} worlds\r\n and made it to Level {player.Level}";
 			defeat.HighscoreText.text = $"Previous best:\n  {GameManager.Instance.Save.bestScoreNormalGeneration} worlds";
 		}
-		LeanTween.scale(defeat.Stamp, Vector3.one, 0.75f).setEaseInQuint().setDelay(1.1f);
-		LeanTween.alpha(defeat.Stamp, 1, 0.75f).setEaseInQuint().setDelay(1.1f);
-		LeanTween.delayedCall(1.8f, () => source.PlayOneShot(stamp));
+		source.PlayOneShot(defeat.Jingle);
+		LeanTween.scale(defeat.Stamp, Vector3.one, 0.75f).setEaseInQuint().setDelay(2.3f);
+		LeanTween.alpha(defeat.Stamp, 1, 0.75f).setEaseInQuint().setDelay(2.3f);
+		LeanTween.delayedCall(3.0f, () => source.PlayOneShot(stamp));
 	}
 
 	public void ToggleAllowInput(bool allow) => AllowInput = allow;

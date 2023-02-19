@@ -7,10 +7,18 @@ using UnityEngine;
 public class GameManager : Singleton<GameManager>
 {
 	public SaveData Save { get; private set; }
+	public AudioSource AudioSource { get; private set; }
 
-	private void Start()
+	new private void Awake()
 	{
+		base.Awake();
 		Save = ReadWrite.Read();
 		SceneLoadTypeData.Create();
+		AudioSource = GetComponent<AudioSource>();
+	}
+
+	public void LerpAudio(float volume)
+	{
+		AudioSource.volume = volume;
 	}
 }
