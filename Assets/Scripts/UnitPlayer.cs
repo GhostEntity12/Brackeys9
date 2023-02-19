@@ -133,6 +133,7 @@ public class UnitPlayer : Unit
 					anim.SetTrigger("attack");
 					queueAttack = true;
 				}
+				levelManager.CrayonPath.AudioSource.Stop();
 			}
 		}
 	}

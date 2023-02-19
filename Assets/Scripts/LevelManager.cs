@@ -9,6 +9,12 @@ using UnityEngine.SceneManagement;
 
 public class LevelManager : MonoBehaviour
 {
+	[Header("Audio")]
+	[SerializeField]
+	AudioSource source;
+	[SerializeField]
+	AudioClip stamp;
+
 	[Header("Prefabs")]
 	[SerializeField]
 	World worldPrefab;
@@ -37,9 +43,9 @@ public class LevelManager : MonoBehaviour
 	EndScreen defeat;
 
 	public World World { get; private set; }
+	public CrayonPath CrayonPath { get; private set; }
 	UnitPlayer player;
 	DoomsdayClock clock;
-	CrayonPath crayonPath;
 
 
 	UnitEnemy hoveredEnemy = null;
@@ -54,7 +60,7 @@ public class LevelManager : MonoBehaviour
 	{
 		World = Instantiate(worldPrefab);
 		clock = Instantiate(clockPrefab);
-		crayonPath = Instantiate(crayonPathPrefab);
+		CrayonPath = Instantiate(crayonPathPrefab);
 		player = Instantiate(playerPrefab);
 
 		World.SetPlayer(player);
@@ -68,7 +74,6 @@ public class LevelManager : MonoBehaviour
 			SceneLoadTypeData.Create();
 			SceneLoadTypeData.GetInstance().loadType = SceneLoadTypeData.LoadType.Endless;
 		}
-		InEndlessMode = SceneLoadTypeData.GetInstance().loadType == SceneLoadTypeData.LoadType.Endless;
 	}
 
 	private void Start()
@@ -90,6 +95,7 @@ public class LevelManager : MonoBehaviour
 			{
 				player.SetPath(new(path.Reverse()));
 				player.SetTargetedEnemy(hoveredEnemy);
+				CrayonPath.AudioSource.Play();
 			}
 
 			// Check if hit enemy
@@ -134,7 +140,8 @@ public class LevelManager : MonoBehaviour
 
 	void PreviewPath(Stack<Node> path)
 	{
-		crayonPath.Display(path);
+		if (path == null) return;
+		CrayonPath.Display(path);
 		clock.ShowPreview(Pathfinding.GetCost(path));
 	}
 
@@ -149,8 +156,8 @@ public class LevelManager : MonoBehaviour
 		defeat.CanvasGroup.interactable = false;
 		defeat.CanvasGroup.blocksRaycasts = false;
 
-		LeanTween.alphaCanvas(bgFade, 1, 0.5f);
-		LeanTween.moveY(endScreenContainer, 0, 0.5f).setEaseOutBack();
+		LeanTween.alphaCanvas(bgFade, 1, 0.5f).setDelay(0.5f);
+		LeanTween.moveY(endScreenContainer, 0, 0.5f).setEaseOutBack().setDelay(0.5f);
 
 		victory.ScoreText.text = $"You beat Sketchbook Quest in\r\n {World.Generations} worlds!";
 		if (GameManager.Instance.Save.bestScoreNormalGeneration == 0)
@@ -169,8 +176,10 @@ public class LevelManager : MonoBehaviour
 
 		_ = ReadWrite.Write(GameManager.Instance.Save);
 
-		LeanTween.scale(victory.Stamp, Vector3.one, 0.75f).setEaseInQuint().setDelay(0.6f);
-		LeanTween.alpha(victory.Stamp, 1, 0.75f).setEaseInQuint().setDelay(0.6f);
+		source.PlayOneShot(victory.Jingle);
+		LeanTween.scale(victory.Stamp, Vector3.one, 0.75f).setEaseInQuint().setDelay(2.7f);
+		LeanTween.alpha(victory.Stamp, 1, 0.75f).setEaseInQuint().setDelay(2.7f);
+		LeanTween.delayedCall(3.4f, () => source.PlayOneShot(stamp));
 	}
 
 	public void GameOver()
@@ -183,8 +192,8 @@ public class LevelManager : MonoBehaviour
 		victory.CanvasGroup.interactable = false;
 		victory.CanvasGroup.blocksRaycasts= false;
 
-		LeanTween.alphaCanvas(bgFade, 1, 0.5f);
-		LeanTween.moveY(endScreenContainer, 0, 0.5f).setEaseOutBack();
+		LeanTween.alphaCanvas(bgFade, 1, 0.5f).setDelay(0.5f);
+		LeanTween.moveY(endScreenContainer, 0, 0.5f).setEaseOutBack().setDelay(0.5f);
 
 		if (InEndlessMode)
 		{
@@ -204,9 +213,9 @@ public class LevelManager : MonoBehaviour
 			defeat.ScoreText.text = $"You survived {World.Generations} worlds\r\n and made it to Level {player.Level}";
 			defeat.HighscoreText.text = $"Previous best:\n  {GameManager.Instance.Save.bestScoreNormalGeneration} worlds";
 		}
-
-		LeanTween.scale(defeat.Stamp, Vector3.one, 0.75f).setEaseInQuint().setDelay(0.6f);
-		LeanTween.alpha(defeat.Stamp, 1, 0.75f).setEaseInQuint().setDelay(0.6f);
+		LeanTween.scale(defeat.Stamp, Vector3.one, 0.75f).setEaseInQuint().setDelay(1.1f);
+		LeanTween.alpha(defeat.Stamp, 1, 0.75f).setEaseInQuint().setDelay(1.1f);
+		LeanTween.delayedCall(1.8f, () => source.PlayOneShot(stamp));
 	}
 
 	public void ToggleAllowInput(bool allow) => AllowInput = allow;
@@ -231,4 +240,6 @@ public class EndScreen
 	public TextMeshProUGUI HighscoreText { get; private set; }
 	[field: SerializeField]
 	public RectTransform Stamp { get; private set; }
+	[field: SerializeField]
+	public AudioClip Jingle { get; private set; }
 }

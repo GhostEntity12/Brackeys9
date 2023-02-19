@@ -6,10 +6,12 @@ using UnityEngine;
 public class CrayonPath : MonoBehaviour
 {
 	LineRenderer pathRenderer;
+	public AudioSource AudioSource { get; private set; }
 
 	private void Awake()
 	{
 		pathRenderer = GetComponent<LineRenderer>();
+		AudioSource = GetComponent<AudioSource>();
 	}
 
 	public void Display(Stack<Node> path)
