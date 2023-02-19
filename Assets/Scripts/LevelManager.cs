@@ -213,7 +213,7 @@ public class LevelManager : MonoBehaviour
 			defeat.ScoreText.text = $"You survived {World.Generations} worlds\r\n and made it to Level {player.Level}";
 			if (player.Level <= GameManager.Instance.Save.bestScoreEndlessLevel)
 			{
-				defeat.HighscoreText.text = $"Previous best:\n  Level{GameManager.Instance.Save.bestScoreEndlessLevel}";
+				defeat.HighscoreText.text = $"Previous best:\n  Reached Level{GameManager.Instance.Save.bestScoreEndlessLevel}";
 			}
 			else
 			{
@@ -224,7 +224,7 @@ public class LevelManager : MonoBehaviour
 		else
 		{
 			defeat.ScoreText.text = $"You survived {World.Generations} worlds\r\n and made it to Level {player.Level}";
-			defeat.HighscoreText.text = $"Previous best:\n  {GameManager.Instance.Save.bestScoreNormalGeneration} worlds";
+			defeat.HighscoreText.text = $"Previous best:\n  Won in {GameManager.Instance.Save.bestScoreNormalGeneration} worlds";
 		}
 		source.PlayOneShot(defeat.Jingle);
 		LeanTween.scale(defeat.Stamp, Vector3.one, 0.75f).setEaseInQuint().setDelay(2.3f);

@@ -2,7 +2,6 @@ using UnityEngine;
 
 public abstract class Unit : MonoBehaviour
 {
-
 	public bool IsDead { get; protected set; } = false;
 	[field: SerializeField]
 	public int Level { get; protected set; }
@@ -31,10 +30,15 @@ public abstract class Unit : MonoBehaviour
 	[SerializeField]
 	protected UnitUI unitUI;
 
+	AudioSource audioSource;
+	[SerializeField]
+	AudioClip attackClip;
+
 	protected virtual void Awake()
 	{
 		anim = GetComponent<Animator>();
 		sprite = GetComponent<SpriteRenderer>();
+		audioSource = GetComponent<AudioSource>();
 	}
 
 	public void SetLevelAndStats(int level)
@@ -49,10 +53,8 @@ public abstract class Unit : MonoBehaviour
 	/// <param name="target">The unit this unit should attack</param>
 	public virtual void AttackUnit(Unit target)
 	{
-		if (target != null)
-		{
-			target.TakeDamage(Mathf.Max(0, CalculatedOffence - target.CalculatedDefence));
-		}
+		if (target == null) return;
+		target.TakeDamage(Mathf.Max(0, CalculatedOffence - target.CalculatedDefence));
 	}
 
 	/// <summary>
@@ -120,5 +122,10 @@ public abstract class Unit : MonoBehaviour
 		}
 		Health = MaxHealth;
 		unitUI.UpdateText(this);
+	}
+
+	public void PlayAttackNoise()
+	{
+		audioSource.PlayOneShot(attackClip);
 	}
 }
